@@ -1,5 +1,5 @@
 import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
-import { CircleAlert, X } from "lucide-react";
+import { CircleAlert, Waves, X } from "lucide-react";
 import { activityDefinitions, type ActivityId } from "../activities";
 import { coastalLocations } from "../locations/southern-california-coast";
 import { toIsoDate } from "../shared/utils/date";
@@ -160,142 +160,106 @@ export function App() {
 
   return (
     <main className="app-frame">
-      <div className="shell">
-        <header className="app-header">
-          <div className="brand-lockup">
-            <div className="moon-mark" aria-hidden="true">
-              <span />
+      <header className="site-header">
+        <div className="shell header-shell">
+          <div className="header-top">
+            <div className="brand-lockup">
+              <div className="brand-mark" aria-hidden="true">
+                <Waves size={27} strokeWidth={1.9} />
+              </div>
+              <div>
+                <h1>Tide Guide</h1>
+              </div>
             </div>
-            <div>
-              <p className="eyebrow">San Diego to Oceanside</p>
-              <h1>Ocean Info</h1>
-            </div>
-          </div>
-
-          <div className="header-card" aria-label="Current planner context">
-            <p>{formattedDate}</p>
-            <strong>
-              {selectedActivity.name} at {selectedLocation.name}
-            </strong>
-          </div>
-        </header>
-
-        <section className="planner-workspace" aria-label="Ocean planner">
-          <aside className="planner-rail">
-            <div className="rail-intro">
-              <p className="eyebrow">Moon, tide, shoreline</p>
-              <h2>Plan the next coastal window</h2>
-              <p>
-                A light planning view for ocean activities, curious kids, and
-                group days near the water.
-              </p>
-            </div>
-
             <section
-              className="control-panel"
+              className="header-planner"
               aria-labelledby="planner-controls-heading"
             >
-              <div className="control-panel-heading">
-                <p className="eyebrow">Plan by</p>
-                <h3 id="planner-controls-heading">Location and date</h3>
-                <p>
-                  Start with the beach, harbor, or cove you have in mind, then
-                  choose the day you are planning around.
-                </p>
-              </div>
 
               <div className="control-strip">
-                <label htmlFor="location-select">
-                  <span>Location</span>
-                  <select
-                    id="location-select"
-                    value={plannerState.locationId}
-                    onChange={(event) =>
-                      setPlannerState((current) => ({
-                        ...current,
-                        locationId: event.target.value,
-                      }))
-                    }
-                  >
-                    {coastalLocations.map((location) => (
-                      <option key={location.id} value={location.id}>
-                        {location.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <p className="field-hint">{selectedLocation.area}</p>
-
-                <label htmlFor="date-select">
-                  <span>Date</span>
-                  <input
-                    id="date-select"
-                    type="date"
-                    value={plannerState.date}
-                    onChange={(event) =>
-                      setPlannerState((current) => ({
-                        ...current,
-                        date: event.target.value,
-                      }))
-                    }
-                  />
-                </label>
-                <p className="field-hint">{formattedDate}</p>
+                <div>
+                  <label htmlFor="location-select">
+                    <span>Location</span>
+                    <select
+                      id="location-select"
+                      value={plannerState.locationId}
+                      onChange={(event) =>
+                        setPlannerState((current) => ({
+                          ...current,
+                          locationId: event.target.value,
+                        }))
+                      }
+                    >
+                      {coastalLocations.map((location) => (
+                        <option key={location.id} value={location.id}>
+                          {location.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <div>
+                  <label htmlFor="date-select">
+                    <span>Date</span>
+                    <input
+                      id="date-select"
+                      type="date"
+                      value={plannerState.date}
+                      onChange={(event) =>
+                        setPlannerState((current) => ({
+                          ...current,
+                          date: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+                </div>
               </div>
             </section>
+          </div>
+        </div>
+      </header>
 
-            <div className="tide-mark" aria-hidden="true">
-              <span className="tide-line" />
-              <span className="tide-line" />
-              <span className="tide-line" />
-            </div>
-          </aside>
-
-          <section className="planner-board" aria-labelledby="activity-heading">
-            <div className="board-heading">
-              <div>
+      <section className="ocean-stage">
+        <div className="shell">
+          <section className="planner-layout" aria-label="Ocean planner">
+            <aside className="activity-sidebar" aria-labelledby="activity-heading">
+              <div className="activity-sidebar-heading">
                 <p className="eyebrow">Activities</p>
-                <h2 id="activity-heading">Choose your activity</h2>
+                <h2 id="activity-heading">Choose activity</h2>
               </div>
-              <span>{selectedActivity.name} selected</span>
-            </div>
 
-            <p className="sr-only" id="activity-selector-help">
-              Choose one ocean activity. Arrow keys move between activities.
-            </p>
+              <p className="sr-only" id="activity-selector-help">
+                Choose one ocean activity. Arrow keys move between activities.
+              </p>
 
-            <div
-              className="activity-grid"
-              role="tablist"
-              aria-labelledby="activity-heading"
-              aria-describedby="activity-selector-help"
-            >
-              {activityDefinitions.map((activity) => (
-                <button
-                  id={`activity-tab-${activity.id}`}
-                  className="activity-card"
-                  type="button"
-                  role="tab"
-                  aria-selected={activity.id === plannerState.activityId}
-                  aria-controls="planner-panel"
-                  tabIndex={activity.id === plannerState.activityId ? 0 : -1}
-                  data-selected={activity.id === plannerState.activityId}
-                  key={activity.id}
-                  onClick={() => selectActivity(activity.id)}
-                  onKeyDown={(event) => handleActivityKeyDown(event, activity.id)}
-                >
-                  <p className="activity-type">{activity.dataNeeds.length} data groups</p>
-                  <h3>{activity.name}</h3>
-                  <p>{activity.summary}</p>
-                  <ul>
-                    {activity.dataNeeds.map((need) => (
-                      <li key={need}>{need}</li>
-                    ))}
-                  </ul>
-                </button>
-              ))}
-            </div>
+              <div
+                className="activity-list"
+                role="tablist"
+                aria-labelledby="activity-heading"
+                aria-describedby="activity-selector-help"
+              >
+                {activityDefinitions.map((activity) => (
+                  <button
+                    id={`activity-tab-${activity.id}`}
+                    className="activity-link"
+                    type="button"
+                    role="tab"
+                    aria-selected={activity.id === plannerState.activityId}
+                    aria-controls="planner-panel"
+                    tabIndex={activity.id === plannerState.activityId ? 0 : -1}
+                    key={activity.id}
+                    onClick={() => selectActivity(activity.id)}
+                    onKeyDown={(event) => handleActivityKeyDown(event, activity.id)}
+                  >
+                    <span>{activity.name}</span>
+                    <small>{activity.dataNeeds.length} checks</small>
+                  </button>
+                ))}
+              </div>
+            </aside>
 
+            <section className="planner-board" aria-label="Activity details">
             <section
               className="recommendation-panel"
               id="planner-panel"
@@ -438,6 +402,7 @@ export function App() {
           </section>
         </section>
       </div>
+      </section>
     </main>
   );
 }

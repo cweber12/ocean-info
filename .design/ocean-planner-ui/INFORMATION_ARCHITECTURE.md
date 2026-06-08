@@ -13,8 +13,8 @@ The MVP should ship as a single-page planner. Future routes are documented here 
 
 ## Navigation Model
 
-- **Primary navigation**: No traditional multi-page nav for MVP. The main controls are the product navigation: location, date, and activity.
-- **Secondary navigation**: Activity selector inside the planner. Use a segmented control or tablist with six activities: Beach day, Dive, Surf, Tidepools, Sail, SUP/kayak.
+- **Primary navigation**: No traditional multi-page nav for MVP. The main header contains brand, location, and date controls.
+- **Secondary navigation**: Activity selector inside the planner. Use a left sidebar of clickable text options with six activities: Beach day, Dive, Surf, Tidepools, Sail, SUP/kayak.
 - **Utility navigation**: Small links may appear in the footer or source-details area for data sources, privacy/key policy, and project notes. These are not first-viewport priorities.
 - **Mobile navigation**: No hamburger menu for MVP. Use stacked planner controls and a horizontally scrollable or wrapped activity selector with clear selected state.
 
@@ -22,7 +22,7 @@ The MVP should ship as a single-page planner. Future routes are documented here 
 
 ### Planner `/`
 
-1. Location/date/activity controls -- This is the user's core planning question.
+1. Header location/date controls -- This is the user's core planning question.
 2. Recommendation summary -- The app should answer "Is this a good idea, and when should we go?" before showing raw metrics.
 3. Best-time window -- Time-sensitive conditions are central for tidepools, surf, sailing, diving, and paddling.
 4. Condition highlights -- Weather, tide, water, swell, wind, water quality, and marine-life notes summarized as readable states.
@@ -101,7 +101,7 @@ The MVP should ship as a single-page planner. Future routes are documented here 
 | --- | --- | --- |
 | PlannerShell | Planner and future guide pages | Single-column mobile, two-column desktop. |
 | PlannerControls | Planner | Controls location, date, and activity query state. |
-| ActivitySelector | Planner and future activity guide | Interactive tablist on planner; static highlight on guides. |
+| ActivitySelector | Planner and future activity guide | Left text sidebar on planner; static highlight on guides. |
 | RecommendationPanel | Planner | Content changes by activity and selected context. |
 | BestWindowCard | Planner | Prominent for tide-sensitive activities. |
 | ConditionGrid | Planner | Shows different condition groups per activity. |

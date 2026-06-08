@@ -1,39 +1,39 @@
 :root {
   color-scheme: light;
 
-  --color-bg-primary: #fbf6ec;
-  --color-bg-secondary: #fffdf8;
-  --color-bg-tertiary: #edf8f6;
-  --color-bg-inverse: #173534;
+  --color-bg-primary: #f7f9f8;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #eef4f5;
+  --color-bg-inverse: #172a32;
 
-  --color-text-primary: #213230;
-  --color-text-secondary: #63716c;
-  --color-text-tertiary: #87938f;
-  --color-text-inverse: #fff8ea;
-  --color-text-link: #0d6f78;
+  --color-text-primary: #172a32;
+  --color-text-secondary: #53676e;
+  --color-text-tertiary: #7d9095;
+  --color-text-inverse: #fbfaf5;
+  --color-text-link: #236b73;
 
-  --color-border-primary: #d8ded5;
-  --color-border-secondary: #ebeadf;
-  --color-border-focus: #0d6f78;
+  --color-border-primary: #d7e0e1;
+  --color-border-secondary: #e8eeee;
+  --color-border-focus: #236b73;
 
-  --color-accent-primary: #0d6f78;
-  --color-accent-primary-hover: #095961;
-  --color-accent-primary-active: #07474e;
-  --color-accent-secondary: #e79bb5;
-  --color-accent-soft: #dff4f1;
-  --color-accent-moon: #f7d97c;
-  --color-accent-kelp: #7aa884;
-  --color-accent-lavender: #b7a3d6;
+  --color-accent-primary: #236b73;
+  --color-accent-primary-hover: #1a555c;
+  --color-accent-primary-active: #123f45;
+  --color-accent-secondary: #d4b66a;
+  --color-accent-soft: #e6f0ef;
+  --color-accent-moon: #d4b66a;
+  --color-accent-kelp: #6f8f7b;
+  --color-accent-lavender: #9c9aa8;
 
-  --color-status-success: #2f7f62;
-  --color-status-warning: #bd6b2f;
-  --color-status-error: #b94444;
-  --color-status-info: #386fa4;
+  --color-status-success: #34785d;
+  --color-status-warning: #9c6b24;
+  --color-status-error: #a64f4b;
+  --color-status-info: #3e718f;
 
-  --color-surface-overlay: rgb(33 50 48 / 62%);
+  --color-surface-overlay: rgb(23 42 50 / 56%);
 
-  --font-family-display: "Avenir Next", Avenir, "Segoe UI", sans-serif;
-  --font-family-body: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  --font-family-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-family-body: "Source Sans 3", "Segoe UI", sans-serif;
   --font-family-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
   --font-size-xs: 0.75rem;
@@ -82,10 +82,10 @@
   --border-radius-lg: 0.75rem;
   --border-radius-full: 999px;
 
-  --shadow-sm: 0 1px 2px rgb(33 50 48 / 8%);
-  --shadow-md: 0 12px 32px rgb(33 50 48 / 10%);
-  --shadow-lg: 0 24px 70px rgb(33 50 48 / 14%);
-  --shadow-focus: 0 0 0 3px rgb(13 111 120 / 26%);
+  --shadow-sm: 0 1px 2px rgb(23 42 50 / 7%);
+  --shadow-md: 0 14px 34px rgb(23 42 50 / 9%);
+  --shadow-lg: 0 24px 72px rgb(23 42 50 / 12%);
+  --shadow-focus: 0 0 0 3px rgb(35 107 115 / 24%);
 
   --duration-instant: 50ms;
   --duration-fast: 150ms;
@@ -119,34 +119,34 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --color-bg-primary: #101b1d;
-  --color-bg-secondary: #172628;
-  --color-bg-tertiary: #21383a;
-  --color-bg-inverse: #f9f2e5;
+  --color-bg-primary: #101a20;
+  --color-bg-secondary: #17262d;
+  --color-bg-tertiary: #22333a;
+  --color-bg-inverse: #f7f9f8;
 
-  --color-text-primary: #f0f5ef;
-  --color-text-secondary: #b8c7c1;
-  --color-text-tertiary: #879a96;
-  --color-text-inverse: #172628;
-  --color-text-link: #91dfe2;
+  --color-text-primary: #f2f6f4;
+  --color-text-secondary: #becbca;
+  --color-text-tertiary: #8fa0a1;
+  --color-text-inverse: #172a32;
+  --color-text-link: #9ed3d3;
 
-  --color-border-primary: #314749;
-  --color-border-secondary: #243637;
-  --color-border-focus: #91dfe2;
+  --color-border-primary: #304148;
+  --color-border-secondary: #25343a;
+  --color-border-focus: #9ed3d3;
 
-  --color-accent-primary: #91dfe2;
-  --color-accent-primary-hover: #a9e9eb;
-  --color-accent-primary-active: #c3f1f1;
-  --color-accent-secondary: #efadc4;
-  --color-accent-soft: #193d40;
-  --color-accent-moon: #f0d37a;
-  --color-accent-kelp: #9dc29c;
-  --color-accent-lavender: #c8b7e5;
+  --color-accent-primary: #9ed3d3;
+  --color-accent-primary-hover: #b8e0df;
+  --color-accent-primary-active: #d3eeec;
+  --color-accent-secondary: #d8bf7d;
+  --color-accent-soft: #203c40;
+  --color-accent-moon: #d8bf7d;
+  --color-accent-kelp: #92aa8d;
+  --color-accent-lavender: #aaa9b5;
 
-  --color-status-success: #8bc8a7;
-  --color-status-warning: #e7ad73;
-  --color-status-error: #ee9292;
-  --color-status-info: #9fc5ea;
+  --color-status-success: #8bb79d;
+  --color-status-warning: #d4ae6c;
+  --color-status-error: #df8b87;
+  --color-status-info: #97bed6;
 
   --color-surface-overlay: rgb(5 15 16 / 72%);
 
@@ -160,34 +160,34 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --color-bg-primary: #101b1d;
-    --color-bg-secondary: #172628;
-    --color-bg-tertiary: #21383a;
-    --color-bg-inverse: #f9f2e5;
+    --color-bg-primary: #101a20;
+    --color-bg-secondary: #17262d;
+    --color-bg-tertiary: #22333a;
+    --color-bg-inverse: #f7f9f8;
 
-    --color-text-primary: #f0f5ef;
-    --color-text-secondary: #b8c7c1;
-    --color-text-tertiary: #879a96;
-    --color-text-inverse: #172628;
-    --color-text-link: #91dfe2;
+    --color-text-primary: #f2f6f4;
+    --color-text-secondary: #becbca;
+    --color-text-tertiary: #8fa0a1;
+    --color-text-inverse: #172a32;
+    --color-text-link: #9ed3d3;
 
-    --color-border-primary: #314749;
-    --color-border-secondary: #243637;
-    --color-border-focus: #91dfe2;
+    --color-border-primary: #304148;
+    --color-border-secondary: #25343a;
+    --color-border-focus: #9ed3d3;
 
-    --color-accent-primary: #91dfe2;
-    --color-accent-primary-hover: #a9e9eb;
-    --color-accent-primary-active: #c3f1f1;
-    --color-accent-secondary: #efadc4;
-    --color-accent-soft: #193d40;
-    --color-accent-moon: #f0d37a;
-    --color-accent-kelp: #9dc29c;
-    --color-accent-lavender: #c8b7e5;
+    --color-accent-primary: #9ed3d3;
+    --color-accent-primary-hover: #b8e0df;
+    --color-accent-primary-active: #d3eeec;
+    --color-accent-secondary: #d8bf7d;
+    --color-accent-soft: #203c40;
+    --color-accent-moon: #d8bf7d;
+    --color-accent-kelp: #92aa8d;
+    --color-accent-lavender: #aaa9b5;
 
-    --color-status-success: #8bc8a7;
-    --color-status-warning: #e7ad73;
-    --color-status-error: #ee9292;
-    --color-status-info: #9fc5ea;
+    --color-status-success: #8bb79d;
+    --color-status-warning: #d4ae6c;
+    --color-status-error: #df8b87;
+    --color-status-info: #97bed6;
 
     --color-surface-overlay: rgb(5 15 16 / 72%);
 

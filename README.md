@@ -1,6 +1,6 @@
-# Ocean Info
+# Tide Guide
 
-Ocean Info is a static web app for viewing Southern California ocean conditions by activity, location, and date.
+Tide Guide is a static web app for viewing Southern California ocean conditions by activity, location, and date.
 
 Initial activity modules:
 

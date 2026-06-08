@@ -26,7 +26,7 @@ The MVP should ship as a single-page planner. Future routes are documented here 
 2. Recommendation summary -- The app should answer "Is this a good idea, and when should we go?" before showing raw metrics.
 3. Best-time window -- Time-sensitive conditions are central for tidepools, surf, sailing, diving, and paddling.
 4. Condition highlights -- Weather, tide, water, swell, wind, water quality, and marine-life notes summarized as readable states.
-5. Safety/advisory callout -- Important cautions must be prominent without making the page feel alarming by default.
+5. Caution popover -- Important cautions are available from a small icon trigger without making warnings a major part of the initial page.
 6. Learning notes -- Family-friendly and nature-observation prompts that connect the activity to the place and conditions.
 7. Source details -- Advanced/provenance information disclosed after the practical answer.
 
@@ -70,8 +70,8 @@ The MVP should ship as a single-page planner. Future routes are documented here 
 ### Check Whether Conditions Are Safe Enough
 
 1. User selects location, date, and activity.
-2. User sees a plain-language advisory state near the top of the recommendation.
-3. User opens supporting condition details if they want more context.
+2. User sees a small caution icon near the recommendation or condition summary.
+3. User opens the caution popover if they want more safety context.
 4. User adjusts timing, changes activity, or chooses another location if cautions are significant.
 
 ### Learn What to Notice
@@ -91,7 +91,7 @@ The MVP should ship as a single-page planner. Future routes are documented here 
 | Main answer | Recommendation | Plain-language summary of suitability. |
 | Ideal period | Best window | Friendly and practical. |
 | Ocean metrics | Conditions | Broader than weather and easier than data groups. |
-| Warnings | Cautions | Softer than alerts, but still clear. |
+| Warnings | Cautions | Softer than alerts; shown through a small popover trigger by default. |
 | Education prompts | What to notice | Better fit for homeschool and nature-observation use. |
 | Provenance | Sources | Plain word for data origin. |
 
@@ -105,7 +105,7 @@ The MVP should ship as a single-page planner. Future routes are documented here 
 | RecommendationPanel | Planner | Content changes by activity and selected context. |
 | BestWindowCard | Planner | Prominent for tide-sensitive activities. |
 | ConditionGrid | Planner | Shows different condition groups per activity. |
-| AdvisoryCallout | Planner and future location guide | Varies tone by severity. |
+| CautionPopover | Planner and future location guide | Icon-triggered details; varies tone by severity. |
 | LearningNotes | Planner and future activity guide | Educational and observational prompts. |
 | SourceDetails | Planner and data-source page | Collapsible in planner; expanded reference view later. |
 

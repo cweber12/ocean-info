@@ -13,8 +13,8 @@ Date: 2026-06-08
 - [x] **Coastal moon-garden app shell**: Replace the scaffold grid with a planner-first layout that establishes the soft ocean/moon/yoga/connections aesthetic on first view. _Modifies: `src/app/App.tsx`, `src/app/styles.css`; reuses `src/app/tokens.css`._
 - [x] **Planner controls**: Build location/date controls and an accessible activity selector as the primary navigation of the page. _Modifies existing controls; creates activity selector UI._
 - [x] **Recommendation panel**: Build the main plain-language recommendation with suitability label, selected location/date/activity context, and one concise reason. _New component inside app or shared components._
-- [ ] **Best-window and condition sections**: Build the best-time window card and condition grid with friendly labels for tide, swell, wind, weather, water quality, water temperature, and marine-life context. _New components; reuses planner data model._
-- [ ] **Cautions and what-to-notice sections**: Build a clear advisory/caution callout plus family-friendly observation prompts that connect the activity to ocean conditions. _New components; reuses planner data model._
+- [x] **Best-window and condition sections**: Build the best-time window card and condition grid with friendly labels for tide, swell, wind, weather, water quality, water temperature, and marine-life context. _New components; reuses planner data model._
+- [x] **Cautions and what-to-notice sections**: Build a small icon-triggered caution popover plus family-friendly observation prompts that connect the activity to ocean conditions. _New components; reuses planner data model._
 - [ ] **Source details**: Add a compact collapsible source/provenance section for advanced users without making source details prominent by default. _New component._
 
 ## Interactions & States

@@ -1,4 +1,5 @@
 import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
+import { CircleAlert, X } from "lucide-react";
 import { activityDefinitions, type ActivityId } from "../activities";
 import { coastalLocations } from "../locations/southern-california-coast";
 import { toIsoDate } from "../shared/utils/date";
@@ -63,6 +64,7 @@ function syncPlannerStateToUrl(state: PlannerState) {
 
 export function App() {
   const [plannerState, setPlannerState] = useState(getPlannerStateFromUrl);
+  const [isCautionOpen, setIsCautionOpen] = useState(false);
 
   const selectedLocation = useMemo(
     () =>
@@ -96,6 +98,10 @@ export function App() {
   useEffect(() => {
     syncPlannerStateToUrl(plannerState);
   }, [plannerState]);
+
+  useEffect(() => {
+    setIsCautionOpen(false);
+  }, [plannerState.activityId, plannerState.date, plannerState.locationId]);
 
   useEffect(() => {
     function handlePopState() {
@@ -298,10 +304,58 @@ export function App() {
               aria-live="polite"
               data-tone={plannerContent.recommendation.tone}
             >
-              <div className="recommendation-copy">
-                <p className="eyebrow">Recommendation</p>
-                <h2>{plannerContent.recommendation.label}</h2>
-                <p>{plannerContent.recommendation.summary}</p>
+              <div className="recommendation-top">
+                <div className="recommendation-copy">
+                  <p className="eyebrow">Recommendation</p>
+                  <h2>{plannerContent.recommendation.label}</h2>
+                  <p>{plannerContent.recommendation.summary}</p>
+                </div>
+
+                <div className="caution-popover-wrap">
+                  <button
+                    className="icon-button caution-trigger"
+                    type="button"
+                    aria-label={`Open cautions for ${selectedActivity.name}`}
+                    aria-expanded={isCautionOpen}
+                    aria-controls="caution-popover"
+                    onClick={() => setIsCautionOpen((open) => !open)}
+                  >
+                    <CircleAlert aria-hidden="true" size={20} strokeWidth={2.2} />
+                  </button>
+
+                  {isCautionOpen ? (
+                    <div
+                      className="caution-popover"
+                      id="caution-popover"
+                      role="dialog"
+                      aria-labelledby="caution-popover-title"
+                      data-tone={plannerContent.caution.tone}
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape") {
+                          setIsCautionOpen(false);
+                        }
+                      }}
+                    >
+                      <div className="caution-popover-heading">
+                        <div>
+                          <p className="eyebrow">Cautions</p>
+                          <h3 id="caution-popover-title">
+                            {plannerContent.caution.label}
+                          </h3>
+                        </div>
+                        <button
+                          className="icon-button"
+                          type="button"
+                          aria-label="Close cautions"
+                          onClick={() => setIsCautionOpen(false)}
+                        >
+                          <X aria-hidden="true" size={18} strokeWidth={2.2} />
+                        </button>
+                      </div>
+                      <p>{plannerContent.caution.message}</p>
+                    </div>
+                  ) : null}
+                </div>
               </div>
 
               <dl className="recommendation-context">
@@ -322,6 +376,63 @@ export function App() {
               <div className="recommendation-reason">
                 <span>Why this works</span>
                 <p>{plannerContent.bestWindow.reason}</p>
+              </div>
+            </section>
+
+            <section
+              className="conditions-section"
+              aria-labelledby="conditions-heading"
+            >
+              <article className="best-window-card">
+                <p className="eyebrow">Best window</p>
+                <h2>{plannerContent.bestWindow.label}</h2>
+                <p>{plannerContent.bestWindow.reason}</p>
+              </article>
+
+              <div className="condition-group">
+                <div className="section-heading">
+                  <div>
+                    <p className="eyebrow">Conditions</p>
+                    <h2 id="conditions-heading">What matters for this plan</h2>
+                  </div>
+                  <span>{plannerContent.conditions.length} checks</span>
+                </div>
+
+                <div className="condition-grid">
+                  {plannerContent.conditions.map((condition) => (
+                    <article
+                      className="condition-card"
+                      data-tone={condition.tone}
+                      key={condition.id}
+                    >
+                      <div className="condition-card-heading">
+                        <span>{condition.label}</span>
+                        <strong>{condition.tone}</strong>
+                      </div>
+                      <h3>{condition.value}</h3>
+                      <p>{condition.note}</p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="notice-section" aria-labelledby="notice-heading">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">Connections</p>
+                  <h2 id="notice-heading">What to notice</h2>
+                </div>
+                <span>Field notes</span>
+              </div>
+
+              <div className="notice-grid">
+                {plannerContent.whatToNotice.map((note) => (
+                  <article className="notice-card" key={note}>
+                    <span aria-hidden="true" />
+                    <p>{note}</p>
+                  </article>
+                ))}
               </div>
             </section>
           </section>

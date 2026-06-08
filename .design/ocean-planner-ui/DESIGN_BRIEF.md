@@ -8,7 +8,7 @@ The human friction is confidence: users want to know where to go, when to go, wh
 
 ## Solution
 
-The interface acts as a friendly ocean planning workspace. A user chooses a location, date, and activity, then sees a clear activity-specific summary: best time window, condition highlights, cautions, and learning or observation notes.
+The interface acts as a friendly ocean planning workspace. A user chooses a location, date, and activity, then sees a clear activity-specific summary: best time window, condition highlights, and learning or observation notes. Cautions stay available through a small icon-triggered popover instead of occupying major first-load space.
 
 The UI should translate raw coastal data into practical planning language first, with deeper source details available after the main answer is clear.
 
@@ -45,7 +45,7 @@ The current scaffold is a simple Vite + React + TypeScript static app.
 | Recommendation summary | New | Primary answer for the selected activity/date/location. |
 | Best-time window | New | Show ideal time range and reason, especially tide-sensitive activities. |
 | Condition chips | Modify | Replace raw data-need chips with meaningful condition states. |
-| Safety/advisory callout | New | Highlight water quality, wind, surf, closures, or other cautions without alarming styling. |
+| Caution popover | New | Use a small icon button to reveal water quality, wind, surf, closures, or other cautions on demand. |
 | Learning notes | New | Short "what to notice" section for homeschool and nature-observation use. |
 | Source details | New | Collapsible detail area for advanced users and provenance. |
 
@@ -53,7 +53,7 @@ The current scaffold is a simple Vite + React + TypeScript static app.
 
 - A user selects a location, date, and activity. The planner updates the recommendation summary and supporting condition cards.
 - Activity selection changes the interpretation of the same data. For example, a low tide can be excellent for tidepools and less important for beach day.
-- Advisory states should be visually distinct and plain-spoken: users should immediately know whether to proceed, adjust timing, or choose another activity.
+- Cautions should be light on the initial page: show a small icon button with plain label text for assistive technology, then reveal caution details in a popover.
 - Details should progressively disclose source-level information without overwhelming first-time users.
 
 ## Responsive Behavior
@@ -72,10 +72,10 @@ Touch targets must be at least 44px. Text in cards and buttons must wrap cleanly
 
 ## Accessibility Requirements
 
-- Maintain WCAG AA contrast for text, controls, and advisory states.
+- Maintain WCAG AA contrast for text, controls, and caution states.
 - All controls must be keyboard reachable and visibly focused.
 - Activity tabs or segmented controls must expose selected state to assistive technology.
-- Advisory and recommendation updates should use semantic headings and status text, not color alone.
+- Caution popovers must have an accessible button label, visible focus, `aria-expanded`, and text that does not rely on color alone.
 - Native date and select controls are acceptable for the first version.
 - Support reduced-motion preferences if transitions are added.
 

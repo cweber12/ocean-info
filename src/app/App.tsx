@@ -2,6 +2,7 @@ import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { activityDefinitions, type ActivityId } from "../activities";
 import { coastalLocations } from "../locations/southern-california-coast";
 import { toIsoDate } from "../shared/utils/date";
+import { getPlannerContent } from "./plannerContent";
 
 interface PlannerState {
   activityId: ActivityId;
@@ -74,6 +75,11 @@ export function App() {
     () =>
       activityDefinitions.find((activity) => activity.id === plannerState.activityId) ??
       activityDefinitions[0],
+    [plannerState.activityId],
+  );
+
+  const plannerContent = useMemo(
+    () => getPlannerContent(plannerState.activityId),
     [plannerState.activityId],
   );
 
@@ -283,6 +289,41 @@ export function App() {
                 </button>
               ))}
             </div>
+
+            <section
+              className="recommendation-panel"
+              id="planner-panel"
+              role="tabpanel"
+              aria-labelledby={`activity-tab-${plannerState.activityId}`}
+              aria-live="polite"
+              data-tone={plannerContent.recommendation.tone}
+            >
+              <div className="recommendation-copy">
+                <p className="eyebrow">Recommendation</p>
+                <h2>{plannerContent.recommendation.label}</h2>
+                <p>{plannerContent.recommendation.summary}</p>
+              </div>
+
+              <dl className="recommendation-context">
+                <div>
+                  <dt>Activity</dt>
+                  <dd>{selectedActivity.name}</dd>
+                </div>
+                <div>
+                  <dt>Location</dt>
+                  <dd>{selectedLocation.name}</dd>
+                </div>
+                <div>
+                  <dt>Date</dt>
+                  <dd>{formattedDate}</dd>
+                </div>
+              </dl>
+
+              <div className="recommendation-reason">
+                <span>Why this works</span>
+                <p>{plannerContent.bestWindow.reason}</p>
+              </div>
+            </section>
           </section>
         </section>
       </div>

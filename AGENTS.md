@@ -38,3 +38,24 @@ Preserve the domain contracts so the frontend can switch from direct public APIs
 - Keep modules small and independently replaceable.
 - Document new data sources in `docs/api-source-matrix.md` before wiring them into an activity.
 - Do not commit secrets. Do not put private keys in `VITE_*` variables.
+
+## Source Control
+
+Commit messages must use a conventional type in the subject and a What/How/Why body.
+
+Format:
+
+```txt
+<type>: <short imperative summary>
+
+What:
+- <what changed>
+
+How:
+- <how the change was made>
+
+Why:
+- <why the change matters>
+```
+
+Common types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `build`.

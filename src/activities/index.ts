@@ -14,4 +14,4 @@ export const activityDefinitions = [
   supKayakActivity,
 ];
 
-export type { ActivityDefinition, ActivityId } from "./types";
+export type { ActivityDataNeed, ActivityDefinition, ActivityId } from "./types";

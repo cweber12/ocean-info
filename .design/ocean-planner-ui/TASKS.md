@@ -10,7 +10,7 @@ Date: 2026-06-08
 
 ## Core UI
 
-- [ ] **Coastal moon-garden app shell**: Replace the scaffold grid with a planner-first layout that establishes the soft ocean/moon/yoga/connections aesthetic on first view. _Modifies: `src/app/App.tsx`, `src/app/styles.css`; reuses `src/app/tokens.css`._
+- [x] **Coastal moon-garden app shell**: Replace the scaffold grid with a planner-first layout that establishes the soft ocean/moon/yoga/connections aesthetic on first view. _Modifies: `src/app/App.tsx`, `src/app/styles.css`; reuses `src/app/tokens.css`._
 - [ ] **Planner controls**: Build location/date controls and an accessible activity selector as the primary navigation of the page. _Modifies existing controls; creates activity selector UI._
 - [ ] **Recommendation panel**: Build the main plain-language recommendation with suitability label, selected location/date/activity context, and one concise reason. _New component inside app or shared components._
 - [ ] **Best-window and condition sections**: Build the best-time window card and condition grid with friendly labels for tide, swell, wind, weather, water quality, water temperature, and marine-life context. _New components; reuses planner data model._

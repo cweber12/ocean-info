@@ -43,6 +43,8 @@ Preserve the domain contracts so the frontend can switch from direct public APIs
 
 Commit messages must use a conventional type in the subject and a What/How/Why body.
 
+After each completed task or vertical slice, provide a commit message for that slice.
+
 Format:
 
 ```txt

@@ -164,18 +164,15 @@ export function App() {
         <div className="shell header-shell">
           <div className="header-top">
             <div className="brand-lockup">
-              <div className="brand-mark" aria-hidden="true">
-                <Waves size={27} strokeWidth={1.9} />
-              </div>
+              
               <div>
                 <h1>Tide Guide</h1>
               </div>
             </div>
             <section
               className="header-planner"
-              aria-labelledby="planner-controls-heading"
+              aria-label="Plan by location and date"
             >
-
               <div className="control-strip">
                 <div>
                   <label htmlFor="location-select">

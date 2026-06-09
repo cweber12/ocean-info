@@ -8,3 +8,7 @@ dist/
 Thumbs.db
 *.tsbuildinfo
 .design
+.png
+.jpg
+.jpeg
+.gif

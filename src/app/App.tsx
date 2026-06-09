@@ -164,11 +164,15 @@ export function App() {
         <div className="shell header-shell">
           <div className="header-top">
             <div className="brand-lockup">
+              <div className="brand-mark" aria-hidden="true">
+                <Waves size={24} strokeWidth={2.1} />
+              </div>
               <div className="brand-copy">
+                <p className="eyebrow">Local ocean planner</p>
                 <h1 className="header-title">Tide Guide</h1>
                 <p className="header-intro">
-                  Compare local tide, wind, and water conditions by activity.
-                  Start with a location and date to see your best window.
+                  Compare local tide, wind, and water conditions by activity,
+                  location, and date.
                 </p>
               </div>
             </div>
@@ -177,6 +181,10 @@ export function App() {
               aria-label="Plan by location and date"
             >
               <div className="control-strip">
+                <div className="control-strip-heading">
+                  <p className="eyebrow">Plan by</p>
+                  <h2>Location and date</h2>
+                </div>
                 <div>
                   <label htmlFor="location-select">
                     <span>Location</span>
@@ -341,18 +349,17 @@ export function App() {
                 <span>Why this works</span>
                 <p>{plannerContent.bestWindow.reason}</p>
               </div>
+
+              <div className="best-window-summary">
+                <span>Best window</span>
+                <strong>{plannerContent.bestWindow.label}</strong>
+              </div>
             </section>
 
             <section
               className="conditions-section"
               aria-labelledby="conditions-heading"
             >
-              <article className="best-window-card">
-                <p className="eyebrow">Best window</p>
-                <h2>{plannerContent.bestWindow.label}</h2>
-                <p>{plannerContent.bestWindow.reason}</p>
-              </article>
-
               <div className="condition-group">
                 <div className="section-heading">
                   <div>

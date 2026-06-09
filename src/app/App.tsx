@@ -164,9 +164,12 @@ export function App() {
         <div className="shell header-shell">
           <div className="header-top">
             <div className="brand-lockup">
-              
-              <div>
-                <h1>Tide Guide</h1>
+              <div className="brand-copy">
+                <h1 className="header-title">Tide Guide</h1>
+                <p className="header-intro">
+                  Compare local tide, wind, and water conditions by activity.
+                  Start with a location and date to see your best window.
+                </p>
               </div>
             </div>
             <section

@@ -1,7 +1,11 @@
 import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { CircleAlert, X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { activityDefinitions, type ActivityId } from "../activities";
+import { fetchNoaaTideReport } from "../data-sources/noaa/tides";
 import { coastalLocations } from "../locations/southern-california-coast";
+import { getNearestTideStation, getTideStationById } from "../locations/tide-stations";
+import { TideReport } from "../shared/components/TideReport";
 import { toIsoDate } from "../shared/utils/date";
 import { getPlannerContent } from "./plannerContent";
 
@@ -109,6 +113,23 @@ export function App() {
       activityDefinitions[0],
     [plannerState.activityId],
   );
+
+  const tideStation = useMemo(() => {
+    const hintedStation = selectedLocation.stationHints?.tideStationId
+      ? getTideStationById(selectedLocation.stationHints.tideStationId)
+      : undefined;
+
+    return hintedStation ?? getNearestTideStation(selectedLocation.point);
+  }, [selectedLocation]);
+
+  const tideReportQuery = useQuery({
+    queryKey: ["noaa-tide-report", tideStation.id, plannerState.date],
+    queryFn: () =>
+      fetchNoaaTideReport({
+        date: plannerState.date,
+        station: tideStation,
+      }),
+  });
 
   const plannerContent = useMemo(
     () => getPlannerContent(plannerState.activityId),
@@ -386,6 +407,17 @@ export function App() {
                 <strong>{plannerContent.bestWindow.label}</strong>
               </div>
             </section>
+
+            <TideReport
+              activityId={plannerState.activityId}
+              errorMessage={
+                tideReportQuery.error instanceof Error
+                  ? tideReportQuery.error.message
+                  : undefined
+              }
+              isLoading={tideReportQuery.isLoading}
+              report={tideReportQuery.data}
+            />
 
             <section
               className="conditions-section"

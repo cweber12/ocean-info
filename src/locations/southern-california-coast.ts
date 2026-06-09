@@ -11,11 +11,60 @@ const allActivities: CoastalLocation["activityIds"] = [
 
 export const coastalLocations: CoastalLocation[] = [
   {
+    id: "imperial-beach",
+    name: "Imperial Beach",
+    area: "Imperial Beach",
+    point: { latitude: 32.58, longitude: -117.14 },
+    activityIds: ["beach-day", "surf", "tidepools"],
+    stationHints: { tideStationId: "9410120" },
+  },
+  {
+    id: "south-san-diego-bay",
+    name: "South San Diego Bay",
+    area: "San Diego Bay",
+    point: { latitude: 32.63, longitude: -117.11 },
+    activityIds: ["sail", "sup-kayak"],
+    stationHints: { tideStationId: "9410135" },
+  },
+  {
+    id: "national-city-san-diego-bay",
+    name: "National City, San Diego Bay",
+    area: "San Diego Bay",
+    point: { latitude: 32.66, longitude: -117.12 },
+    activityIds: ["sail", "sup-kayak"],
+    stationHints: { tideStationId: "9410152" },
+  },
+  {
+    id: "point-loma-quarantine-station",
+    name: "Point Loma Quarantine Station",
+    area: "San Diego",
+    point: { latitude: 32.7, longitude: -117.23 },
+    activityIds: ["dive", "sail", "sup-kayak"],
+    stationHints: { tideStationId: "9410166" },
+  },
+  {
+    id: "san-diego-broadway-pier",
+    name: "San Diego Bay, Broadway Pier",
+    area: "San Diego Bay",
+    point: { latitude: 32.72, longitude: -117.18 },
+    activityIds: ["sail", "sup-kayak", "beach-day"],
+    stationHints: { tideStationId: "9410170" },
+  },
+  {
+    id: "mission-bay-campland",
+    name: "Mission Bay, Campland",
+    area: "Mission Bay",
+    point: { latitude: 32.79, longitude: -117.22 },
+    activityIds: ["beach-day", "sail", "sup-kayak"],
+    stationHints: { tideStationId: "9410196" },
+  },
+  {
     id: "san-diego-la-jolla-shores",
     name: "La Jolla Shores",
     area: "San Diego",
     point: { latitude: 32.8569, longitude: -117.2574 },
     activityIds: allActivities,
+    stationHints: { tideStationId: "9410230" },
   },
   {
     id: "san-diego-la-jolla-cove",
@@ -23,6 +72,7 @@ export const coastalLocations: CoastalLocation[] = [
     area: "San Diego",
     point: { latitude: 32.8507, longitude: -117.2727 },
     activityIds: ["beach-day", "dive", "sup-kayak", "tidepools"],
+    stationHints: { tideStationId: "9410230" },
   },
   {
     id: "san-diego-mission-beach",
@@ -30,6 +80,7 @@ export const coastalLocations: CoastalLocation[] = [
     area: "San Diego",
     point: { latitude: 32.7707, longitude: -117.2525 },
     activityIds: ["beach-day", "surf", "sup-kayak"],
+    stationHints: { tideStationId: "9410196" },
   },
   {
     id: "del-mar",
@@ -37,6 +88,7 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Del Mar",
     point: { latitude: 32.9595, longitude: -117.2653 },
     activityIds: ["beach-day", "surf", "tidepools"],
+    stationHints: { tideStationId: "9410230" },
   },
   {
     id: "encinitas-swamis",
@@ -44,6 +96,7 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Encinitas",
     point: { latitude: 33.0369, longitude: -117.292 },
     activityIds: ["beach-day", "surf", "tidepools"],
+    stationHints: { tideStationId: "9410230" },
   },
   {
     id: "carlsbad-tamarack",
@@ -51,6 +104,7 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Carlsbad",
     point: { latitude: 33.1502, longitude: -117.347 },
     activityIds: ["beach-day", "surf", "sup-kayak"],
+    stationHints: { tideStationId: "9410230" },
   },
   {
     id: "oceanside-harbor",
@@ -58,5 +112,6 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Oceanside",
     point: { latitude: 33.2077, longitude: -117.3943 },
     activityIds: ["beach-day", "sail", "sup-kayak", "surf"],
+    stationHints: { tideStationId: "9410230" },
   },
 ];

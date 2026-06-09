@@ -5,7 +5,7 @@ This document tracks candidate data sources before implementation.
 | Category | Candidate Source | Static Client Fit | Notes |
 | --- | --- | --- | --- |
 | Weather | NOAA / National Weather Service | Good | Public, no private key expected for many endpoints. Verify CORS per endpoint. |
-| Tide | NOAA CO-OPS | Good | Public tide and water level data. Map locations to stations. |
+| Tide | NOAA CO-OPS Data API | Good | Implemented for tide predictions with `product=predictions`, `datum=MLLW`, `time_zone=lst_ldt`, English units, high/low rows for tables, and hourly rows for charts. Locations map to vetted NOAA tide-prediction stations, with North County locations currently mapped to La Jolla/Scripps because NOAA does not list Carlsbad/Oceanside tide-prediction stations in the San Diego-to-Oceanside range. |
 | Buoys / marine conditions | NDBC | Good | Public buoy observations and forecasts. |
 | Water quality | Local county / beach advisories | Mixed | Source format may vary by jurisdiction. Prefer public JSON/RSS if available. |
 | Water temperature | NOAA CO-OPS / NDBC | Good | Depends on station coverage near selected location. |

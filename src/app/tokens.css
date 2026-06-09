@@ -1,41 +1,86 @@
 :root {
   color-scheme: light;
 
-  --color-bg-primary: #f4f7f2;
-  --color-bg-secondary: #ffffff;
-  --color-bg-tertiary: #edf4f1;
-  --color-bg-inverse: #18333a;
-  --color-bg-stage: #d9e9e2;
+  --color-bg-primary: #eef7f6;
+  --color-bg-secondary: #fbfefd;
+  --color-bg-tertiary: #e4f1ef;
+  --color-bg-inverse: #082b34;
+  --color-bg-stage: #c6e8e4;
   --color-bg-header: #f7c997;
-  --color-bg-underwater: #cfe3de;
+  --color-bg-underwater: #0e5261;
 
-  --color-text-primary: #18333a;
-  --color-text-secondary: #53686a;
-  --color-text-tertiary: #778e8d;
-  --color-text-inverse: #fbfaf4;
-  --color-text-link: #236a6d;
+  --color-text-primary: #072229;
+  --color-text-secondary: #294f56;
+  --color-text-tertiary: #58747a;
+  --color-text-inverse: #f8fffb;
+  --color-text-link: #075d69;
 
-  --color-border-primary: #d3dfdc;
-  --color-border-secondary: #e5ece9;
-  --color-border-focus: #236a6d;
+  --color-border-primary: #b9d1d0;
+  --color-border-secondary: #d8e8e6;
+  --color-border-focus: #075d69;
 
-  --color-accent-primary: #236a6d;
-  --color-accent-primary-hover: #1b5558;
-  --color-accent-primary-active: #123f42;
-  --color-accent-secondary: #d69a54;
-  --color-accent-soft: #e1efeb;
-  --color-accent-moon: #d7a45f;
-  --color-accent-kelp: #668a70;
-  --color-accent-lavender: #8f94a3;
+  --color-accent-primary: #075d69;
+  --color-accent-primary-hover: #044d58;
+  --color-accent-primary-active: #033c45;
+  --color-accent-secondary: #d79455;
+  --color-accent-soft: #d8eeeb;
+  --color-accent-moon: #e0aa62;
+  --color-accent-kelp: #5c8a77;
+  --color-accent-lavender: #7d91a4;
 
-  --color-status-success: #34785d;
-  --color-status-warning: #a56d2b;
-  --color-status-error: #a8534e;
-  --color-status-info: #3f7585;
+  --color-status-success: #2f8069;
+  --color-status-warning: #a66723;
+  --color-status-error: #a64b4f;
+  --color-status-info: #2d7f94;
 
-  --color-surface-overlay: rgb(24 51 58 / 56%);
+  --color-surface-overlay: rgb(8 43 52 / 58%);
+  --color-transparent: transparent;
+  --color-tone-mix-base: var(--color-bg-secondary);
 
-  --font-family-display: "Source Sans 3", "Segoe UI", sans-serif;
+  --color-app-gradient-sun: rgb(244 190 134 / 62%);
+  --color-app-gradient-mist: rgb(226 241 237 / 78%);
+  --color-app-gradient-waterline: rgb(177 228 223 / 96%);
+
+  --color-header-wash-top: rgb(251 250 244 / 2%);
+  --color-header-wash-mid: rgb(9 64 72 / 10%);
+  --color-header-wash-kelp: rgb(4 77 84 / 28%);
+  --color-header-wash-depth: rgb(6 42 51 / 92%);
+  --color-header-glow-sun: rgb(255 223 153 / 36%);
+  --color-header-glow-cream: rgb(251 250 244 / 12%);
+  --color-header-glow-accent: rgb(16 109 125 / 12%);
+  --color-header-fade-clear: rgb(255 255 255 / 0%);
+  --color-header-fade-water: rgb(149 221 216 / 88%);
+  --color-header-sheen: rgb(255 255 255 / 46%);
+
+  --color-stage-highlight: rgb(238 255 250 / 62%);
+  --color-stage-clear: rgb(255 255 255 / 0%);
+  --color-stage-moon: rgb(224 170 98 / 18%);
+  --color-stage-moon-clear: rgb(215 164 95 / 0%);
+  --color-stage-surface: rgb(128 224 216 / 98%);
+  --color-stage-mid: rgb(27 114 126 / 96%);
+  --color-stage-depth: rgb(5 38 52 / 98%);
+  --color-stage-sand-shallow: rgb(229 190 126 / 34%);
+  --color-stage-sand-mid: rgb(179 138 86 / 22%);
+  --color-stage-sand-depth: rgb(83 91 70 / 9%);
+  --color-stage-line-strong: rgb(238 255 250 / 20%);
+  --color-stage-line-soft: rgb(155 224 221 / 13%);
+
+  --color-surface-glass-strong: rgb(251 254 253 / 91%);
+  --color-surface-glass-planner: rgb(251 254 253 / 84%);
+  --color-surface-glass-brand: rgb(251 254 253 / 80%);
+  --color-surface-glass-hover: rgb(251 254 253 / 78%);
+  --color-surface-glass-card: rgb(251 254 253 / 68%);
+  --color-surface-glass-tab: rgb(251 254 253 / 60%);
+  --color-surface-glass-pill: rgb(251 254 253 / 52%);
+
+  --color-border-glass-strong: rgb(248 255 252 / 82%);
+  --color-border-glass-panel: rgb(208 236 234 / 76%);
+  --color-border-glass-card: rgb(203 230 229 / 68%);
+  --color-border-glass-pill: rgb(222 242 240 / 70%);
+  --color-border-glass-dot: rgb(248 255 252 / 86%);
+  --color-card-tone-surface: rgb(251 254 253 / 88%);
+
+  --font-family-display: "Afacad Flux", "Source Sans 3", "Segoe UI", sans-serif;
   --font-family-body: "Source Sans 3", "Segoe UI", sans-serif;
   --font-family-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
@@ -85,10 +130,10 @@
   --border-radius-lg: 0.625rem;
   --border-radius-full: 999px;
 
-  --shadow-sm: 0 1px 2px rgb(23 42 50 / 7%);
-  --shadow-md: 0 14px 34px rgb(24 51 58 / 9%);
-  --shadow-lg: 0 24px 72px rgb(24 51 58 / 12%);
-  --shadow-focus: 0 0 0 3px rgb(35 106 109 / 24%);
+  --shadow-sm: 0 1px 2px rgb(7 34 41 / 8%), 0 1px 10px rgb(7 93 105 / 4%);
+  --shadow-md: 0 14px 34px rgb(7 34 41 / 13%), 0 3px 10px rgb(7 93 105 / 7%);
+  --shadow-lg: 0 28px 76px rgb(7 34 41 / 18%), 0 8px 22px rgb(7 93 105 / 9%);
+  --shadow-focus: 0 0 0 3px rgb(7 93 105 / 26%), 0 0 0 6px rgb(238 255 250 / 56%);
 
   --duration-instant: 50ms;
   --duration-fast: 150ms;
@@ -155,6 +200,42 @@
   --color-status-info: #94c4cf;
 
   --color-surface-overlay: rgb(5 15 16 / 72%);
+  --color-app-gradient-sun: rgb(34 56 61 / 78%);
+  --color-app-gradient-mist: rgb(21 52 59 / 82%);
+  --color-app-gradient-waterline: rgb(18 80 92 / 94%);
+
+  --color-header-wash-top: rgb(5 20 24 / 10%);
+  --color-header-wash-mid: rgb(5 20 24 / 28%);
+  --color-header-wash-kelp: rgb(4 64 72 / 38%);
+  --color-header-wash-depth: rgb(4 25 34 / 96%);
+  --color-header-fade-water: rgb(18 80 92 / 90%);
+  --color-header-sheen: rgb(185 239 235 / 26%);
+
+  --color-stage-highlight: rgb(185 239 235 / 22%);
+  --color-stage-moon: rgb(224 183 122 / 11%);
+  --color-stage-surface: rgb(24 104 116 / 98%);
+  --color-stage-mid: rgb(12 72 86 / 98%);
+  --color-stage-depth: rgb(4 24 35 / 99%);
+  --color-stage-sand-shallow: rgb(196 158 98 / 18%);
+  --color-stage-sand-mid: rgb(139 105 68 / 13%);
+  --color-stage-sand-depth: rgb(50 57 47 / 8%);
+  --color-stage-line-strong: rgb(185 239 235 / 14%);
+  --color-stage-line-soft: rgb(185 239 235 / 8%);
+
+  --color-surface-glass-strong: rgb(20 42 47 / 91%);
+  --color-surface-glass-planner: rgb(20 42 47 / 84%);
+  --color-surface-glass-brand: rgb(20 42 47 / 80%);
+  --color-surface-glass-hover: rgb(31 57 62 / 82%);
+  --color-surface-glass-card: rgb(20 42 47 / 76%);
+  --color-surface-glass-tab: rgb(20 42 47 / 70%);
+  --color-surface-glass-pill: rgb(20 42 47 / 64%);
+
+  --color-border-glass-strong: rgb(185 239 235 / 30%);
+  --color-border-glass-panel: rgb(129 182 184 / 24%);
+  --color-border-glass-card: rgb(129 182 184 / 22%);
+  --color-border-glass-pill: rgb(129 182 184 / 22%);
+  --color-border-glass-dot: rgb(185 239 235 / 34%);
+  --color-card-tone-surface: rgb(20 42 47 / 88%);
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 22%);
   --shadow-md: 0 14px 36px rgb(0 0 0 / 28%);
@@ -199,6 +280,42 @@
     --color-status-info: #94c4cf;
 
     --color-surface-overlay: rgb(5 15 16 / 72%);
+    --color-app-gradient-sun: rgb(34 56 61 / 78%);
+    --color-app-gradient-mist: rgb(21 52 59 / 82%);
+    --color-app-gradient-waterline: rgb(18 80 92 / 94%);
+
+    --color-header-wash-top: rgb(5 20 24 / 10%);
+    --color-header-wash-mid: rgb(5 20 24 / 28%);
+    --color-header-wash-kelp: rgb(4 64 72 / 38%);
+    --color-header-wash-depth: rgb(4 25 34 / 96%);
+    --color-header-fade-water: rgb(18 80 92 / 90%);
+    --color-header-sheen: rgb(185 239 235 / 26%);
+
+    --color-stage-highlight: rgb(185 239 235 / 22%);
+    --color-stage-moon: rgb(224 183 122 / 11%);
+    --color-stage-surface: rgb(24 104 116 / 98%);
+    --color-stage-mid: rgb(12 72 86 / 98%);
+    --color-stage-depth: rgb(4 24 35 / 99%);
+    --color-stage-sand-shallow: rgb(196 158 98 / 18%);
+    --color-stage-sand-mid: rgb(139 105 68 / 13%);
+    --color-stage-sand-depth: rgb(50 57 47 / 8%);
+    --color-stage-line-strong: rgb(185 239 235 / 14%);
+    --color-stage-line-soft: rgb(185 239 235 / 8%);
+
+    --color-surface-glass-strong: rgb(20 42 47 / 91%);
+    --color-surface-glass-planner: rgb(20 42 47 / 84%);
+    --color-surface-glass-brand: rgb(20 42 47 / 80%);
+    --color-surface-glass-hover: rgb(31 57 62 / 82%);
+    --color-surface-glass-card: rgb(20 42 47 / 76%);
+    --color-surface-glass-tab: rgb(20 42 47 / 70%);
+    --color-surface-glass-pill: rgb(20 42 47 / 64%);
+
+    --color-border-glass-strong: rgb(185 239 235 / 30%);
+    --color-border-glass-panel: rgb(129 182 184 / 24%);
+    --color-border-glass-card: rgb(129 182 184 / 22%);
+    --color-border-glass-pill: rgb(129 182 184 / 22%);
+    --color-border-glass-dot: rgb(185 239 235 / 34%);
+    --color-card-tone-surface: rgb(20 42 47 / 88%);
 
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 22%);
     --shadow-md: 0 14px 36px rgb(0 0 0 / 28%);

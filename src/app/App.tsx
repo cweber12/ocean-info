@@ -1,5 +1,5 @@
 import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
-import { CircleAlert, Waves, X } from "lucide-react";
+import { CircleAlert, X } from "lucide-react";
 import { activityDefinitions, type ActivityId } from "../activities";
 import { coastalLocations } from "../locations/southern-california-coast";
 import { toIsoDate } from "../shared/utils/date";
@@ -16,6 +16,36 @@ const defaultActivityId: ActivityId =
   activityDefinitions[0].id;
 const defaultLocationId = coastalLocations[0].id;
 const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+function NotebookWaveMark() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="brand-mark-icon"
+      fill="none"
+      viewBox="0 0 48 48"
+    >
+      <path
+        d="M15 8h22a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H15a6 6 0 0 1-6-6V14a6 6 0 0 1 6-6Z"
+        className="brand-mark-page"
+      />
+      <path d="M15 8v36" className="brand-mark-spine" />
+      <path d="M11 16h6M11 24h6M11 32h6" className="brand-mark-rings" />
+      <path
+        d="M22 19c2.8-2.2 5.4 2.2 8.2 0s5.3 2.2 7.3 0"
+        className="brand-mark-wave"
+      />
+      <path
+        d="M22 27c2.8-2.2 5.4 2.2 8.2 0s5.3 2.2 7.3 0"
+        className="brand-mark-wave"
+      />
+      <path
+        d="M22 35c2.8-2.2 5.4 2.2 8.2 0s5.3 2.2 7.3 0"
+        className="brand-mark-wave"
+      />
+    </svg>
+  );
+}
 
 function isActivityId(value: string | null): value is ActivityId {
   return activityDefinitions.some((activity) => activity.id === value);
@@ -165,11 +195,12 @@ export function App() {
           <div className="header-top">
             <div className="brand-lockup">
               <div className="brand-mark" aria-hidden="true">
-                <Waves size={24} strokeWidth={2.1} />
+                <NotebookWaveMark />
               </div>
               <div className="brand-copy">
-                <p className="eyebrow">Local ocean planner</p>
-                <h1 className="header-title">Tide Guide</h1>
+                <div className="brand-heading">
+                  <h1 className="header-title">Tide Guide</h1>
+                </div>
                 <p className="header-intro">
                   Compare local tide, wind, and water conditions by activity,
                   location, and date.

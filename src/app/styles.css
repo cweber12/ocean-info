@@ -622,8 +622,8 @@ input:focus-visible,
   align-items: stretch;
 }
 
-.tide-chart-panel,
-.tide-summary-panel,
+.chart-panel,
+.data-panel,
 .tide-loading,
 .tide-error {
   color: var(--color-text-primary);
@@ -634,17 +634,24 @@ input:focus-visible,
   backdrop-filter: blur(12px);
 }
 
-.tide-chart-panel {
-  min-height: 13rem;
+.chart-panel {
+  min-height: 11rem;
+  padding: var(--space-3);
+  overflow: hidden;
+}
+
+.tide-report[data-variant="feature"] .chart-panel {
+  min-height: 18rem;
   padding: var(--space-4);
 }
 
-.tide-report[data-variant="feature"] .tide-chart-panel {
-  min-height: 18rem;
+.data-panel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
 }
 
-.tide-summary-panel {
-  display: grid;
+.tide-report[data-variant="feature"] .data-panel {
   gap: var(--space-4);
   padding: var(--space-5);
 }
@@ -657,11 +664,16 @@ input:focus-visible,
 .tide-stat {
   display: grid;
   gap: var(--space-2);
-  min-height: 6.75rem;
-  padding: var(--space-4);
+  min-height: 5.75rem;
+  padding: var(--space-3);
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-secondary);
   border-radius: var(--border-radius-sm);
+}
+
+.tide-report[data-variant="feature"] .tide-stat {
+  min-height: 6.75rem;
+  padding: var(--space-4);
 }
 
 .tide-stat span,
@@ -676,8 +688,12 @@ input:focus-visible,
 
 .tide-stat strong {
   color: var(--color-text-primary);
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   line-height: var(--line-height-tight);
+}
+
+.tide-report[data-variant="feature"] .tide-stat strong {
+  font-size: var(--font-size-xl);
 }
 
 .tide-stat small,
@@ -709,15 +725,22 @@ input:focus-visible,
 
 .tide-events li {
   display: grid;
-  grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr) auto;
-  gap: var(--space-3);
+  grid-template-columns: minmax(4.75rem, auto) minmax(0, 1fr) auto;
+  gap: var(--space-2);
   align-items: center;
-  min-height: 2.75rem;
-  padding: var(--space-3) var(--space-4);
+  min-height: 2.35rem;
+  padding: var(--space-2) var(--space-3);
   color: var(--color-text-secondary);
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-secondary);
   border-radius: var(--border-radius-sm);
+}
+
+.tide-report[data-variant="feature"] .tide-events li {
+  grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  min-height: 2.75rem;
+  padding: var(--space-3) var(--space-4);
 }
 
 .tide-events li strong {
@@ -743,7 +766,7 @@ input:focus-visible,
 .tide-chart {
   display: block;
   width: 100%;
-  height: 13rem;
+  height: 11rem;
   overflow: visible;
 }
 
@@ -752,7 +775,17 @@ input:focus-visible,
 }
 
 .tide-chart-area {
-  fill: color-mix(in srgb, var(--color-accent-primary) 17%, var(--color-bg-secondary));
+  opacity: 0.86;
+}
+
+.tide-chart-gradient-top {
+  stop-color: color-mix(in srgb, var(--color-accent-primary) 30%, var(--color-bg-secondary));
+  stop-opacity: 0.72;
+}
+
+.tide-chart-gradient-bottom {
+  stop-color: var(--color-surface-glass-strong);
+  stop-opacity: 0.16;
 }
 
 .tide-chart-line {
@@ -766,6 +799,16 @@ input:focus-visible,
 .tide-chart-axis {
   stroke: var(--color-border-primary);
   stroke-width: 1;
+}
+
+.tide-chart-x-tick line,
+.tide-chart-y-tick line {
+  stroke: color-mix(in srgb, var(--color-border-primary) 72%, transparent);
+  stroke-width: 1;
+}
+
+.tide-chart-y-tick line {
+  stroke-dasharray: 4 8;
 }
 
 .tide-chart-event circle {
@@ -783,6 +826,10 @@ input:focus-visible,
   font-family: var(--font-family-body);
   font-size: 0.75rem;
   font-weight: var(--font-weight-bold);
+}
+
+.tide-report[data-variant="compact"] .tide-chart text {
+  font-size: 0.68rem;
 }
 
 .tide-chart-empty {

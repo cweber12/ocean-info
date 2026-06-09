@@ -1,9 +1,11 @@
+import { useId } from "react";
 import type { ActivityId } from "../../activities";
 import type {
   TideChartPoint,
   TidePrediction,
   TideReport as TideReportData,
 } from "../../domain/tide/types";
+import { ChartPanel, DataPanel } from "./DataDisplayPanels";
 
 export interface TideReportProps {
   activityId: ActivityId;
@@ -12,7 +14,7 @@ export interface TideReportProps {
   report?: TideReportData;
 }
 
-type TideReportVariant = "compact" | "feature" | "standard";
+type TideReportVariant = "compact" | "feature";
 
 export function TideReport({
   activityId,
@@ -54,11 +56,16 @@ export function TideReport({
       <TideReportHeading variant={variant} />
 
       <div className="tide-report-grid">
-        <div className="tide-chart-panel">
-          <TideChart points={report.chart} events={report.highLow} />
-        </div>
+        <ChartPanel>
+          <TideChart
+            points={report.chart}
+            events={report.highLow}
+            showYAxis={variant === "feature"}
+            xTickIntervalHours={variant === "feature" ? 4 : 6}
+          />
+        </ChartPanel>
 
-        <div className="tide-summary-panel">
+        <DataPanel>
           <div className="tide-stat-grid">
             <TideStat
               label={variant === "feature" ? "Lowest tide" : "Next low"}
@@ -100,7 +107,7 @@ export function TideReport({
               {report.sourceName} predictions in feet relative to {report.datum}.
             </p>
           ) : null}
-        </div>
+        </DataPanel>
       </div>
     </section>
   );
@@ -123,13 +130,20 @@ function TideReportHeading({ variant }: { variant: TideReportVariant }) {
 function TideChart({
   events,
   points,
+  showYAxis,
+  xTickIntervalHours,
 }: {
   events: TidePrediction[];
   points: TideChartPoint[];
+  showYAxis: boolean;
+  xTickIntervalHours: number;
 }) {
+  const gradientId = `tide-chart-gradient-${useId().replace(/:/g, "")}`;
   const width = 720;
   const height = 260;
-  const padding = 28;
+  const padding = showYAxis
+    ? { bottom: 34, left: 50, right: 22, top: 18 }
+    : { bottom: 28, left: 20, right: 18, top: 16 };
 
   if (points.length === 0) {
     return <div className="tide-chart-empty">No chart points available.</div>;
@@ -139,19 +153,37 @@ function TideChart({
   const minHeight = Math.min(...heights);
   const maxHeight = Math.max(...heights);
   const range = Math.max(maxHeight - minHeight, 1);
-  const coordinates = points.map((point, index) => {
+  const startMinute = getChartMinute(points[0].at);
+  const endMinute = getChartMinute(points[points.length - 1].at);
+  const minuteRange = Math.max(endMinute - startMinute, 1);
+  const plotBottom = height - padding.bottom;
+  const plotHeight = height - padding.top - padding.bottom;
+  const plotWidth = width - padding.left - padding.right;
+  const coordinates = points.map((point) => {
+    const pointMinute = getChartMinute(point.at);
     const x =
-      padding + (index / Math.max(points.length - 1, 1)) * (width - padding * 2);
+      padding.left +
+      ((pointMinute - startMinute) / minuteRange) * plotWidth;
     const y =
-      height -
-      padding -
-      ((point.heightFeet - minHeight) / range) * (height - padding * 2);
+      plotBottom - ((point.heightFeet - minHeight) / range) * plotHeight;
 
     return { ...point, x, y };
   });
 
-  const line = coordinates.map((point) => `${point.x},${point.y}`).join(" ");
-  const area = `${padding},${height - padding} ${line} ${width - padding},${height - padding}`;
+  const linePath = buildSmoothPath(coordinates);
+  const areaPath = `${linePath} L ${coordinates[coordinates.length - 1].x} ${plotBottom} L ${coordinates[0].x} ${plotBottom} Z`;
+  const timeTicks = getTimeTicks(startMinute, endMinute, xTickIntervalHours).map(
+    (minute) => ({
+      label: formatChartHour(minute),
+      x: padding.left + ((minute - startMinute) / minuteRange) * plotWidth,
+    }),
+  );
+  const yTicks = showYAxis
+    ? getHeightTicks(minHeight, maxHeight).map((heightFeet) => ({
+        heightFeet,
+        y: plotBottom - ((heightFeet - minHeight) / range) * plotHeight,
+      }))
+    : [];
 
   return (
     <svg
@@ -161,15 +193,49 @@ function TideChart({
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
     >
-      <polygon className="tide-chart-area" points={area} />
-      <polyline className="tide-chart-line" points={line} />
+      <defs>
+        <linearGradient
+          id={gradientId}
+          x1="0"
+          x2="0"
+          y1={padding.top}
+          y2={plotBottom}
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop className="tide-chart-gradient-top" offset="0%" />
+          <stop className="tide-chart-gradient-bottom" offset="100%" />
+        </linearGradient>
+      </defs>
+      {yTicks.map((tick) => (
+        <g className="tide-chart-y-tick" key={tick.heightFeet}>
+          <line
+            x1={padding.left}
+            x2={width - padding.right}
+            y1={tick.y}
+            y2={tick.y}
+          />
+          <text x={padding.left - 10} y={tick.y + 4} textAnchor="end">
+            {formatHeight(tick.heightFeet)}
+          </text>
+        </g>
+      ))}
+      <path className="tide-chart-area" d={areaPath} style={{ fill: `url(#${gradientId})` }} />
+      <path className="tide-chart-line" d={linePath} />
       <line
         className="tide-chart-axis"
-        x1={padding}
-        x2={width - padding}
-        y1={height - padding}
-        y2={height - padding}
+        x1={padding.left}
+        x2={width - padding.right}
+        y1={plotBottom}
+        y2={plotBottom}
       />
+      {timeTicks.map((tick) => (
+        <g className="tide-chart-x-tick" key={tick.label}>
+          <line x1={tick.x} x2={tick.x} y1={plotBottom} y2={plotBottom + 5} />
+          <text x={tick.x} y={height - 8} textAnchor="middle">
+            {tick.label}
+          </text>
+        </g>
+      ))}
       {events.slice(0, 4).map((event) => {
         const point = getNearestChartPoint(event.at, coordinates);
 
@@ -179,15 +245,6 @@ function TideChart({
           </g>
         ) : null;
       })}
-      <text x={padding} y={height - 8}>
-        12a
-      </text>
-      <text x={width / 2 - 12} y={height - 8}>
-        noon
-      </text>
-      <text x={width - padding - 24} y={height - 8}>
-        11p
-      </text>
     </svg>
   );
 }
@@ -215,11 +272,7 @@ function getTideReportVariant(activityId: ActivityId): TideReportVariant {
     return "feature";
   }
 
-  if (activityId === "surf" || activityId === "dive") {
-    return "compact";
-  }
-
-  return "standard";
+  return "compact";
 }
 
 function getLowestTide(predictions: TidePrediction[]): TidePrediction | undefined {
@@ -254,26 +307,95 @@ function getNearestChartPoint(
   eventTime: string,
   points: Array<TideChartPoint & { x: number; y: number }>,
 ) {
-  const eventHour = Number(eventTime.slice(11, 13));
-  const eventMinute = Number(eventTime.slice(14, 16));
-  const eventMinutes = eventHour * 60 + eventMinute;
+  const eventMinutes = getChartMinute(eventTime);
 
   return points.reduce<typeof points[number] | undefined>((nearest, point) => {
-    const pointHour = Number(point.at.slice(11, 13));
-    const pointMinute = Number(point.at.slice(14, 16));
-    const pointMinutes = pointHour * 60 + pointMinute;
+    const pointMinutes = getChartMinute(point.at);
     const pointDistance = Math.abs(pointMinutes - eventMinutes);
 
     if (!nearest) {
       return point;
     }
 
-    const nearestHour = Number(nearest.at.slice(11, 13));
-    const nearestMinute = Number(nearest.at.slice(14, 16));
-    const nearestDistance = Math.abs(nearestHour * 60 + nearestMinute - eventMinutes);
+    const nearestDistance = Math.abs(getChartMinute(nearest.at) - eventMinutes);
 
     return pointDistance < nearestDistance ? point : nearest;
   }, undefined);
+}
+
+function buildSmoothPath(points: Array<{ x: number; y: number }>): string {
+  if (points.length === 0) {
+    return "";
+  }
+
+  if (points.length === 1) {
+    return `M ${points[0].x} ${points[0].y}`;
+  }
+
+  return points.slice(0, -1).reduce((path, point, index) => {
+    const previousPoint = points[index - 1] ?? point;
+    const nextPoint = points[index + 1];
+    const afterNextPoint = points[index + 2] ?? nextPoint;
+    const controlPointOne = {
+      x: point.x + (nextPoint.x - previousPoint.x) / 6,
+      y: point.y + (nextPoint.y - previousPoint.y) / 6,
+    };
+    const controlPointTwo = {
+      x: nextPoint.x - (afterNextPoint.x - point.x) / 6,
+      y: nextPoint.y - (afterNextPoint.y - point.y) / 6,
+    };
+
+    return `${path} C ${controlPointOne.x} ${controlPointOne.y}, ${controlPointTwo.x} ${controlPointTwo.y}, ${nextPoint.x} ${nextPoint.y}`;
+  }, `M ${points[0].x} ${points[0].y}`);
+}
+
+function getChartMinute(localTime: string): number {
+  const hour = Number(localTime.slice(11, 13));
+  const minute = Number(localTime.slice(14, 16));
+
+  return hour * 60 + minute;
+}
+
+function getTimeTicks(
+  startMinute: number,
+  endMinute: number,
+  intervalHours: number,
+): number[] {
+  const intervalMinutes = intervalHours * 60;
+  const firstTick =
+    Math.ceil(startMinute / intervalMinutes) * intervalMinutes;
+  const ticks: number[] = [];
+
+  for (let minute = firstTick; minute <= endMinute; minute += intervalMinutes) {
+    ticks.push(minute);
+  }
+
+  return ticks;
+}
+
+function getHeightTicks(minHeight: number, maxHeight: number): number[] {
+  const range = Math.max(maxHeight - minHeight, 1);
+  const step = range / 3;
+
+  return Array.from({ length: 4 }, (_, index) => maxHeight - step * index);
+}
+
+function formatChartHour(minuteOfDay: number): string {
+  const hour = Math.floor(minuteOfDay / 60);
+
+  if (hour === 0) {
+    return "12a";
+  }
+
+  if (hour === 12) {
+    return "noon";
+  }
+
+  if (hour < 12) {
+    return `${hour}a`;
+  }
+
+  return `${hour - 12}p`;
 }
 
 function formatHeight(heightFeet: number): string {

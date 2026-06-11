@@ -44,7 +44,7 @@
   --color-header-wash-top: rgb(251 250 244 / 2%);
   --color-header-wash-mid: rgb(9 64 72 / 10%);
   --color-header-wash-kelp: rgb(4 77 84 / 28%);
-  --color-header-wash-depth: rgb(6 42 51 / 92%);
+  --color-header-wash-depth: rgb(6 42 51 / 65%);
   --color-header-glow-sun: rgb(255 223 153 / 36%);
   --color-header-glow-cream: rgb(251 250 244 / 12%);
   --color-header-glow-accent: rgb(16 109 125 / 12%);
@@ -207,8 +207,8 @@
   --color-header-wash-top: rgb(5 20 24 / 10%);
   --color-header-wash-mid: rgb(5 20 24 / 28%);
   --color-header-wash-kelp: rgb(4 64 72 / 38%);
-  --color-header-wash-depth: rgb(4 25 34 / 96%);
-  --color-header-fade-water: rgb(18 80 92 / 90%);
+  --color-header-wash-depth: rgb(4 25 34 / 25%);
+  --color-header-fade-water: rgb(18 80 92 / 25%);
   --color-header-sheen: rgb(185 239 235 / 26%);
 
   --color-stage-highlight: rgb(185 239 235 / 22%);

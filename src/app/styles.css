@@ -83,7 +83,7 @@ h3 {
     linear-gradient(90deg, rgb(4 34 43 / 70%) 0%, rgb(4 34 43 / 42%) 38%, rgb(4 34 43 / 18%) 68%, rgb(4 34 43 / 34%) 100%),
     linear-gradient(180deg, var(--color-header-wash-top) 0%, var(--color-header-wash-mid) 52%, var(--color-header-wash-kelp) 90%, var(--color-header-wash-depth) 100%),
     linear-gradient(90deg, var(--color-header-glow-sun) 0 36%, var(--color-header-glow-cream) 64%, var(--color-header-glow-accent) 100%),
-    url("../../lajolla_cove.png") center 43% / cover no-repeat;
+    url("./assets/la-jolla-pier.png") center 43% / cover no-repeat;
 }
 
 .header-shell {
@@ -99,6 +99,39 @@ h3 {
   display: grid;
   gap: var(--space-5);
   align-items: start;
+}
+
+.weather-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  align-items: center;
+  justify-self: start;
+  max-width: min(100%, 34rem);
+  color: rgb(248 255 252);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  text-shadow:
+    0 2px 14px rgb(4 28 35 / 48%),
+    0 1px 2px rgb(4 28 35 / 70%);
+}
+
+.weather-summary span {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: 1.5rem;
+}
+
+.weather-summary svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-moon);
+  filter: drop-shadow(0 1px 4px rgb(4 28 35 / 40%));
+}
+
+.weather-summary-forecast {
+  color: rgba(204, 231, 225, 0.96);
 }
 
 .brand-lockup {
@@ -304,29 +337,36 @@ input:hover {
   align-items: start;
 }
 
-.activity-sidebar {
+.planner-hero-row {
+  display: grid;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.activity-tabs {
   color: var(--color-text-primary);
 }
 
-.activity-sidebar-heading {
+.activity-tabs-heading {
   display: grid;
   gap: var(--space-2);
   margin-bottom: var(--space-4);
 }
 
-.activity-sidebar-heading .eyebrow {
+.activity-tabs-heading .eyebrow {
   margin-bottom: 0;
   color: color-mix(in srgb, var(--color-text-inverse) 72%, var(--color-accent-moon));
 }
 
-.activity-sidebar-heading h2 {
+.activity-tabs-heading h2 {
   margin-bottom: 0;
   color: var(--color-text-inverse);
   text-shadow: 0 1px 12px rgb(4 28 35 / 30%);
 }
 
 .activity-list {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
@@ -340,6 +380,7 @@ input:hover {
   color: var(--color-text-secondary);
   text-align: left;
   cursor: pointer;
+  flex: 1 1 12rem;
   background: var(--color-surface-glass-tab);
   border: 1px solid var(--color-border-glass-card);
   border-radius: var(--border-radius-md);
@@ -394,6 +435,19 @@ input:focus-visible,
   gap: var(--space-5);
 }
 
+.data-module-grid {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.data-module {
+  min-width: 0;
+}
+
+.data-module-animal {
+  grid-column: 1 / -1;
+}
+
 .recommendation-panel,
 .condition-card,
 .notice-card,
@@ -411,6 +465,42 @@ input:focus-visible,
   gap: var(--space-5);
   padding: var(--space-6);
   overflow: visible;
+}
+
+.recommendation-panel--compact {
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.recommendation-panel--compact .recommendation-copy h2 {
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-xl);
+}
+
+.recommendation-panel--compact .recommendation-copy p:last-child {
+  font-size: var(--font-size-base);
+}
+
+.recommendation-panel--compact .recommendation-context {
+  gap: var(--space-2);
+}
+
+.recommendation-panel--compact .recommendation-context div {
+  padding: var(--space-3);
+}
+
+.recommendation-panel--compact .recommendation-reason,
+.recommendation-panel--compact .best-window-summary {
+  padding-top: var(--space-4);
+}
+
+.recommendation-panel--compact .recommendation-reason p,
+.recommendation-panel--compact .best-window-summary p {
+  font-size: var(--font-size-base);
+}
+
+.recommendation-panel--compact .best-window-summary strong {
+  font-size: var(--font-size-lg);
 }
 
 .recommendation-panel[data-tone="great"] {
@@ -565,10 +655,270 @@ input:focus-visible,
 
 .conditions-section,
 .condition-group,
+.animal-sightings,
 .notice-section,
+.marine-weather-report,
 .tide-report {
   display: grid;
   gap: var(--space-4);
+}
+
+.coastal-map-panel {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  color: var(--color-text-primary);
+  padding: var(--space-5);
+  background: var(--color-surface-glass-strong);
+  border: 1px solid var(--color-border-glass-panel);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(12px);
+}
+
+.coastal-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.coastal-map-legend span {
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+  background: var(--color-surface-glass-pill);
+  border: 1px solid var(--color-border-glass-pill);
+  border-radius: var(--border-radius-full);
+}
+
+.coastal-map-legend span[data-tone="tide"] {
+  color: color-mix(in srgb, var(--color-accent-primary) 82%, var(--color-text-primary));
+}
+
+.coastal-map-legend span[data-tone="buoy"] {
+  color: color-mix(in srgb, var(--color-accent-secondary) 82%, var(--color-text-primary));
+}
+
+.coastal-map-legend span[data-tone="sighting"] {
+  color: color-mix(in srgb, var(--color-status-success) 78%, var(--color-text-primary));
+}
+
+.coastal-map-frame {
+  min-height: 22rem;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgb(239 248 246 / 94%), rgb(227 241 238 / 88%));
+  border: 1px solid var(--color-border-glass-panel);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.coastal-map {
+  width: 100%;
+  height: 100%;
+  min-height: 22rem;
+}
+
+.coastal-map-detail {
+  display: grid;
+  gap: var(--space-4);
+  min-height: 22rem;
+  padding: var(--space-5);
+  background:
+    radial-gradient(circle at top right, rgb(216 238 235 / 82%), transparent 34%),
+    linear-gradient(180deg, rgb(251 254 253 / 94%), rgb(233 244 242 / 90%));
+}
+
+.coastal-map-detail-top {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.coastal-map-detail-top .eyebrow {
+  margin-bottom: 0;
+}
+
+.coastal-map-exit-button {
+  flex: 0 0 auto;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  background: var(--color-bg-secondary);
+}
+
+.coastal-map-detail-body {
+  display: grid;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.coastal-map-detail-media {
+  min-height: 11rem;
+  overflow: hidden;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+}
+
+.coastal-map-detail-media img {
+  width: 100%;
+  height: 100%;
+  max-height: 14rem;
+  object-fit: cover;
+  display: block;
+}
+
+.coastal-map-detail-media span {
+  display: grid;
+  place-items: center;
+  min-height: 11rem;
+  color: var(--color-accent-primary);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: var(--font-weight-bold);
+}
+
+.coastal-map-detail-copy {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.coastal-map-detail-copy strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+}
+
+.coastal-map-detail-copy small {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.coastal-map-detail-grid {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.coastal-map-detail-grid div {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
+.coastal-map-detail-grid dt {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.coastal-map-detail-grid dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  line-height: var(--line-height-relaxed);
+}
+
+.coastal-map-detail-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-start;
+}
+
+.coastal-map-detail-actions a {
+  min-height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-4);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+  background: var(--color-accent-primary);
+  border-radius: var(--border-radius-full);
+}
+
+.coastal-map .leaflet-container {
+  font-family: var(--font-family-body);
+}
+
+.coastal-map .leaflet-control-attribution,
+.coastal-map .leaflet-control-zoom {
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.coastal-map-marker {
+  position: relative;
+  display: block;
+}
+
+.coastal-map-pin-bg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 5px rgb(11 47 56 / 28%));
+}
+
+.coastal-map-pin-bg path {
+  stroke: rgb(255 255 255 / 88%);
+  stroke-width: 2;
+}
+
+.coastal-map-marker span {
+  position: absolute;
+  inset: 0 0 0.35rem;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.coastal-map-marker-station {
+  width: 32px;
+  height: 40px;
+}
+
+.coastal-map-marker-tide .coastal-map-pin-bg path {
+  fill: var(--color-accent-primary);
+}
+
+.coastal-map-marker-buoy .coastal-map-pin-bg path {
+  fill: var(--color-accent-secondary);
+}
+
+.coastal-map-marker-sighting {
+  width: 36px;
+  height: 44px;
+}
+
+.coastal-map-marker-sighting .coastal-map-pin-bg path {
+  fill: var(--color-accent-primary);
+}
+
+.coastal-map-marker-sighting span {
+  inset: 0 0 0.5rem;
+}
+
+.coastal-map-marker-sighting img {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .section-heading {
@@ -608,6 +958,233 @@ input:focus-visible,
   gap: var(--space-4);
 }
 
+.animal-sightings-panel {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  color: var(--color-text-primary);
+  background: var(--color-surface-glass-strong);
+  border: 1px solid var(--color-border-glass-panel);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(12px);
+}
+
+.animal-sightings-controls {
+  display: grid;
+  gap: var(--space-4);
+  align-items: end;
+}
+
+.animal-search-field {
+  position: relative;
+  display: grid;
+  align-items: center;
+}
+
+.animal-search-field svg {
+  position: absolute;
+  left: var(--space-4);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.animal-search-field input {
+  padding-left: calc(var(--space-4) * 2 + 1.125rem);
+}
+
+.animal-sighting-row {
+  display: flex;
+  gap: var(--space-3);
+  min-height: 5.25rem;
+  padding-bottom: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.animal-chip {
+  display: grid;
+  grid-template-columns: auto minmax(8rem, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+  flex: 0 0 min(15.5rem, 82vw);
+  min-height: 4.75rem;
+  padding: var(--space-3);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
+.animal-chip-thumb,
+.animal-sighting-thumb {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--color-accent-primary);
+  font-weight: var(--font-weight-bold);
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-border-secondary);
+}
+
+.animal-chip-thumb {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--border-radius-sm);
+}
+
+.animal-sighting-thumb {
+  width: 4rem;
+  height: 4rem;
+  border-radius: var(--border-radius-sm);
+}
+
+.animal-chip-thumb img,
+.animal-sighting-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.animal-chip strong,
+.animal-sighting-item strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.animal-chip small,
+.animal-sighting-item small,
+.animal-sightings-actions span,
+.animal-pagination span {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.animal-sightings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-secondary);
+}
+
+.animal-expand-button {
+  min-height: 2.5rem;
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-4);
+  color: var(--color-accent-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-full);
+  box-shadow: var(--shadow-sm);
+}
+
+.animal-expand-button:hover {
+  color: var(--color-accent-primary-hover);
+  border-color: var(--color-accent-primary);
+}
+
+.animal-sightings-expanded {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.animal-sighting-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.animal-sighting-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 5.25rem;
+  padding: var(--space-3);
+  color: inherit;
+  text-decoration: none;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
+.animal-sighting-item:hover {
+  border-color: color-mix(in srgb, var(--color-accent-primary) 42%, var(--color-border-primary));
+}
+
+.animal-sighting-copy {
+  min-width: 0;
+}
+
+.animal-sighting-copy strong,
+.animal-sighting-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.animal-sighting-meta {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+}
+
+.animal-sighting-meta span {
+  min-height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-full);
+}
+
+.animal-sighting-meta span[data-grade="research"] {
+  background: color-mix(in srgb, var(--color-status-success) 16%, var(--color-tone-mix-base));
+  border-color: color-mix(in srgb, var(--color-status-success) 36%, var(--color-tone-mix-base));
+}
+
+.animal-pagination {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.animal-pagination .icon-button:disabled {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.animal-sightings-state {
+  min-height: 5rem;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: var(--space-5);
+  color: var(--color-text-secondary);
+  text-align: center;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
 .tide-report {
   color: var(--color-text-primary);
 }
@@ -617,6 +1194,12 @@ input:focus-visible,
 }
 
 .tide-report-grid {
+  display: grid;
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.weather-report-grid {
   display: grid;
   gap: var(--space-4);
   align-items: stretch;
@@ -645,6 +1228,11 @@ input:focus-visible,
   padding: var(--space-4);
 }
 
+.weather-chart-panel {
+  min-height: 17rem;
+  padding: var(--space-4);
+}
+
 .data-panel {
   display: grid;
   gap: var(--space-3);
@@ -656,7 +1244,17 @@ input:focus-visible,
   padding: var(--space-5);
 }
 
+.weather-data-panel {
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
 .tide-stat-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.weather-stat-grid {
   display: grid;
   gap: var(--space-3);
 }
@@ -671,19 +1269,41 @@ input:focus-visible,
   border-radius: var(--border-radius-sm);
 }
 
+.weather-stat {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 6.75rem;
+  padding: var(--space-4);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
 .tide-report[data-variant="feature"] .tide-stat {
   min-height: 6.75rem;
   padding: var(--space-4);
 }
 
 .tide-stat span,
+.weather-stat span,
 .tide-events-heading span,
-.tide-source-note {
+.tide-source-note,
+.weather-source-note {
   color: var(--color-text-tertiary);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--letter-spacing-wide);
   text-transform: uppercase;
+}
+
+.weather-stat span {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.weather-stat span svg {
+  color: var(--color-accent-primary);
 }
 
 .tide-stat strong {
@@ -692,11 +1312,18 @@ input:focus-visible,
   line-height: var(--line-height-tight);
 }
 
+.weather-stat strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+}
+
 .tide-report[data-variant="feature"] .tide-stat strong {
   font-size: var(--font-size-xl);
 }
 
 .tide-stat small,
+.weather-stat small,
 .tide-events-heading small {
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
@@ -753,8 +1380,16 @@ input:focus-visible,
   text-transform: none;
 }
 
+.weather-source-note {
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+  text-transform: none;
+}
+
 .tide-loading,
-.tide-error {
+.tide-error,
+.weather-loading,
+.weather-error {
   min-height: 8rem;
   display: grid;
   place-items: center;
@@ -770,12 +1405,23 @@ input:focus-visible,
   overflow: visible;
 }
 
+.wind-chart {
+  display: block;
+  width: 100%;
+  height: 17rem;
+  overflow: visible;
+}
+
 .tide-report[data-variant="feature"] .tide-chart {
   height: 18rem;
 }
 
 .tide-chart-area {
   opacity: 0.86;
+}
+
+.wind-chart-area {
+  opacity: 0.78;
 }
 
 .tide-chart-gradient-top {
@@ -788,6 +1434,16 @@ input:focus-visible,
   stop-opacity: 0.16;
 }
 
+.wind-chart-gradient-top {
+  stop-color: color-mix(in srgb, var(--color-accent-moon) 42%, var(--color-bg-secondary));
+  stop-opacity: 0.62;
+}
+
+.wind-chart-gradient-bottom {
+  stop-color: var(--color-surface-glass-strong);
+  stop-opacity: 0.12;
+}
+
 .tide-chart-line {
   fill: none;
   stroke: var(--color-accent-primary);
@@ -796,18 +1452,44 @@ input:focus-visible,
   stroke-width: 4;
 }
 
+.wind-chart-speed-line,
+.wind-chart-gust-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.wind-chart-speed-line {
+  stroke: var(--color-accent-primary);
+  stroke-width: 4;
+}
+
+.wind-chart-gust-line {
+  stroke: var(--color-accent-secondary);
+  stroke-dasharray: 8 8;
+  stroke-width: 3;
+}
+
 .tide-chart-axis {
   stroke: var(--color-border-primary);
   stroke-width: 1;
 }
 
+.wind-chart-axis {
+  stroke: var(--color-border-primary);
+  stroke-width: 1;
+}
+
 .tide-chart-x-tick line,
-.tide-chart-y-tick line {
+.tide-chart-y-tick line,
+.wind-chart-x-tick line,
+.wind-chart-y-tick line {
   stroke: color-mix(in srgb, var(--color-border-primary) 72%, transparent);
   stroke-width: 1;
 }
 
-.tide-chart-y-tick line {
+.tide-chart-y-tick line,
+.wind-chart-y-tick line {
   stroke-dasharray: 4 8;
 }
 
@@ -828,12 +1510,26 @@ input:focus-visible,
   font-weight: var(--font-weight-bold);
 }
 
+.wind-chart text {
+  fill: var(--color-text-tertiary);
+  font-family: var(--font-family-body);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-bold);
+}
+
 .tide-report[data-variant="compact"] .tide-chart text {
   font-size: 0.68rem;
 }
 
 .tide-chart-empty {
   min-height: 12rem;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-secondary);
+}
+
+.weather-chart-empty {
+  min-height: 13rem;
   display: grid;
   place-items: center;
   color: var(--color-text-secondary);
@@ -977,6 +1673,11 @@ input:focus-visible,
     gap: var(--space-6);
   }
 
+  .weather-summary {
+    justify-self: end;
+    text-align: right;
+  }
+
   .brand-lockup {
     gap: var(--space-5);
     padding-top: var(--space-2);
@@ -1004,16 +1705,43 @@ input:focus-visible,
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .animal-sightings-controls {
+    grid-template-columns: minmax(14rem, 1fr) minmax(8rem, 10rem) minmax(10rem, 12rem);
+  }
+
+  .animal-sighting-item {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .animal-sighting-meta {
+    display: grid;
+    grid-column: auto;
+    justify-items: end;
+  }
+
+  .data-module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
   .tide-report-grid {
     grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.8fr);
   }
 
+  .weather-report-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.9fr);
+  }
+
   .tide-report[data-variant="compact"] .tide-report-grid {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.8fr);
   }
 
   .tide-stat-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .weather-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .tide-report[data-variant="compact"] .tide-stat-grid {
@@ -1035,14 +1763,31 @@ input:focus-visible,
     min-height: 21rem;
   }
 
-  .planner-layout {
-    grid-template-columns: minmax(13rem, 16rem) minmax(0, 1fr);
-    gap: var(--space-8);
+  .header-top {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .activity-sidebar {
-    position: sticky;
-    top: var(--space-6);
+  .brand-lockup {
+    grid-column: 1;
+  }
+
+  .weather-summary {
+    grid-column: 2;
+    grid-row: 1;
+    padding-top: var(--space-2);
+  }
+
+  .header-planner {
+    grid-column: 1 / -1;
+  }
+
+  .planner-hero-row {
+    grid-template-columns: minmax(0, 1.08fr) minmax(22rem, 0.92fr);
+  }
+
+  .coastal-map-frame,
+  .coastal-map {
+    min-height: 24rem;
   }
 
   .condition-grid {

@@ -8,9 +8,12 @@ export interface GeoPoint {
 export interface StationHints {
   tideStationId?: string;
   buoyStationId?: string;
+  currentStationId?: string;
   weatherGridId?: string;
   waterQualityAreaId?: string;
 }
+
+export type AnimalSightingActivityId = "dive" | "tidepools";
 
 export interface CoastalLocation {
   id: string;
@@ -18,5 +21,6 @@ export interface CoastalLocation {
   area: string;
   point: GeoPoint;
   activityIds: ActivityId[];
+  animalSightingCenters?: Partial<Record<AnimalSightingActivityId, GeoPoint>>;
   stationHints?: StationHints;
 }

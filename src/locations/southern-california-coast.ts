@@ -16,7 +16,10 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Imperial Beach",
     point: { latitude: 32.58, longitude: -117.14 },
     activityIds: ["beach-day", "surf", "tidepools"],
-    stationHints: { tideStationId: "9410120" },
+    animalSightingCenters: {
+      tidepools: { latitude: 32.5795, longitude: -117.1359 },
+    },
+    stationHints: { buoyStationId: "46254", tideStationId: "9410120" },
   },
   {
     id: "south-san-diego-bay",
@@ -40,7 +43,10 @@ export const coastalLocations: CoastalLocation[] = [
     area: "San Diego",
     point: { latitude: 32.7, longitude: -117.23 },
     activityIds: ["dive", "sail", "sup-kayak"],
-    stationHints: { tideStationId: "9410166" },
+    animalSightingCenters: {
+      dive: { latitude: 32.6978, longitude: -117.2415 },
+    },
+    stationHints: { buoyStationId: "46254", tideStationId: "9410166" },
   },
   {
     id: "san-diego-broadway-pier",
@@ -56,7 +62,7 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Mission Bay",
     point: { latitude: 32.79, longitude: -117.22 },
     activityIds: ["beach-day", "sail", "sup-kayak"],
-    stationHints: { tideStationId: "9410196" },
+    stationHints: { buoyStationId: "46258", tideStationId: "9410196" },
   },
   {
     id: "san-diego-la-jolla-shores",
@@ -64,7 +70,11 @@ export const coastalLocations: CoastalLocation[] = [
     area: "San Diego",
     point: { latitude: 32.8569, longitude: -117.2574 },
     activityIds: allActivities,
-    stationHints: { tideStationId: "9410230" },
+    animalSightingCenters: {
+      dive: { latitude: 32.8554, longitude: -117.262 },
+      tidepools: { latitude: 32.8569, longitude: -117.2574 },
+    },
+    stationHints: { buoyStationId: "46254", tideStationId: "9410230" },
   },
   {
     id: "san-diego-la-jolla-cove",
@@ -72,7 +82,11 @@ export const coastalLocations: CoastalLocation[] = [
     area: "San Diego",
     point: { latitude: 32.8507, longitude: -117.2727 },
     activityIds: ["beach-day", "dive", "sup-kayak", "tidepools"],
-    stationHints: { tideStationId: "9410230" },
+    animalSightingCenters: {
+      dive: { latitude: 32.8507, longitude: -117.2755 },
+      tidepools: { latitude: 32.8498, longitude: -117.2717 },
+    },
+    stationHints: { buoyStationId: "46254", tideStationId: "9410230" },
   },
   {
     id: "san-diego-mission-beach",
@@ -80,7 +94,7 @@ export const coastalLocations: CoastalLocation[] = [
     area: "San Diego",
     point: { latitude: 32.7707, longitude: -117.2525 },
     activityIds: ["beach-day", "surf", "sup-kayak"],
-    stationHints: { tideStationId: "9410196" },
+    stationHints: { buoyStationId: "46258", tideStationId: "9410196" },
   },
   {
     id: "del-mar",
@@ -88,7 +102,10 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Del Mar",
     point: { latitude: 32.9595, longitude: -117.2653 },
     activityIds: ["beach-day", "surf", "tidepools"],
-    stationHints: { tideStationId: "9410230" },
+    animalSightingCenters: {
+      tidepools: { latitude: 32.9595, longitude: -117.2653 },
+    },
+    stationHints: { buoyStationId: "46254", tideStationId: "9410230" },
   },
   {
     id: "encinitas-swamis",
@@ -96,7 +113,10 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Encinitas",
     point: { latitude: 33.0369, longitude: -117.292 },
     activityIds: ["beach-day", "surf", "tidepools"],
-    stationHints: { tideStationId: "9410230" },
+    animalSightingCenters: {
+      tidepools: { latitude: 33.0369, longitude: -117.292 },
+    },
+    stationHints: { buoyStationId: "46254", tideStationId: "9410230" },
   },
   {
     id: "carlsbad-tamarack",
@@ -104,7 +124,7 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Carlsbad",
     point: { latitude: 33.1502, longitude: -117.347 },
     activityIds: ["beach-day", "surf", "sup-kayak"],
-    stationHints: { tideStationId: "9410230" },
+    stationHints: { buoyStationId: "46224", tideStationId: "9410230" },
   },
   {
     id: "oceanside-harbor",
@@ -112,6 +132,6 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Oceanside",
     point: { latitude: 33.2077, longitude: -117.3943 },
     activityIds: ["beach-day", "sail", "sup-kayak", "surf"],
-    stationHints: { tideStationId: "9410230" },
+    stationHints: { buoyStationId: "46224", tideStationId: "9410230" },
   },
 ];

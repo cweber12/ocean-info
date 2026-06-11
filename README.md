@@ -43,6 +43,18 @@ Not allowed until a backend exists:
 - server-only credentials
 - writeable user sightings or shared user data
 
+## Movebank Setup
+
+Movebank tracking is wired through a Cloudflare Worker so credentials never reach the browser.
+
+Frontend environment flags:
+
+- `VITE_ENABLE_MOVEBANK_TRACKING=true` to show the tracking panel in dive/tidepools
+- `VITE_MOVEBANK_PROXY_BASE_URL=/api/movebank` for the Worker route base
+- `VITE_MOVEBANK_DAYS_BACK=7` and `VITE_MOVEBANK_RADIUS_KM=25` for default query windows
+
+See [docs/movebank-cloudflare-setup.md](docs/movebank-cloudflare-setup.md) for Worker deployment, secrets, and route setup.
+
 ## Scripts
 
 ```bash

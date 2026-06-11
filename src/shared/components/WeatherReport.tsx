@@ -3,7 +3,6 @@ import {
   CloudSun,
   Compass,
   Droplets,
-  ThermometerSun,
   Waves,
   Wind,
 } from "lucide-react";
@@ -98,6 +97,7 @@ export function MarineWeatherReport({
   }
 
   const stats = getWeatherStats(activityId, report);
+  const waveStats = getWaveStats(report);
 
   return (
     <section
@@ -123,6 +123,34 @@ export function MarineWeatherReport({
           </p>
         </DataPanel>
       </div>
+
+      {waveStats.length > 0 ? (
+        <section
+          className="wave-observation-section"
+          aria-labelledby="wave-observation-heading"
+        >
+          <DataPanel className="wave-data-panel">
+            <div className="wave-observation-heading">
+              <div>
+                <p className="eyebrow">Waves</p>
+                <h3 id="wave-observation-heading">Wave observations</h3>
+              </div>
+              <span>{report.stationNames.waves ?? "NDBC"}</span>
+            </div>
+
+            <div className="weather-stat-grid wave-stat-grid">
+              {waveStats.map((stat) => (
+                <WeatherStatCard key={stat.label} stat={stat} />
+              ))}
+            </div>
+
+            <p className="weather-source-note">
+              Latest observation from {report.waveObservation?.sourceName ?? "NDBC"} station{" "}
+              {report.stationNames.waves ?? report.waveObservation?.stationName ?? "unknown"}.
+            </p>
+          </DataPanel>
+        </section>
+      ) : null}
     </section>
   );
 }
@@ -274,12 +302,12 @@ function getActivityWeatherContent(activityId: ActivityId) {
     dive: {
       badge: "Entry check",
       heading: "Surface and exposure",
-      sourceNote: "NWS forecast with NOAA water and buoy observations where available.",
+      sourceNote: "NWS forecast with NOAA water observations where available.",
     },
     sail: {
       badge: "Wind chart",
       heading: "Sailing weather",
-      sourceNote: "NWS forecast with NOAA wind, wave, and current observations where available.",
+      sourceNote: "NWS forecast with NOAA wind observations where available.",
     },
     "sup-kayak": {
       badge: "Paddle check",
@@ -288,8 +316,8 @@ function getActivityWeatherContent(activityId: ActivityId) {
     },
     surf: {
       badge: "Surf check",
-      heading: "Wind and wave setup",
-      sourceNote: "NWS forecast with NOAA buoy observations where available.",
+      heading: "Wind and weather setup",
+      sourceNote: "NWS forecast with NOAA coastal observations where available.",
     },
     tidepools: {
       badge: "Field check",
@@ -310,37 +338,37 @@ function getWeatherStats(
       getSkyStat(report),
       getWindStat(report),
       getWaterTemperatureStat(report),
-      getWaveStat(report),
+      getGustStat(report),
     ],
     dive: [
-      getWaveStat(report),
       getWaterTemperatureStat(report),
       getWindStat(report),
-      getCurrentStat(report),
+      getSkyStat(report),
+      getGustStat(report),
     ],
     sail: [
       getWindStat(report),
       getGustStat(report),
-      getWaveStat(report),
-      getCurrentStat(report),
+      getSkyStat(report),
+      getWaterTemperatureStat(report),
     ],
     "sup-kayak": [
       getWindStat(report),
-      getCurrentStat(report),
       getSkyStat(report),
       getWaterTemperatureStat(report),
+      getGustStat(report),
     ],
     surf: [
-      getWaveStat(report),
       getWindStat(report),
       getWaterTemperatureStat(report),
       getSkyStat(report),
+      getGustStat(report),
     ],
     tidepools: [
       getSkyStat(report),
       getWindStat(report),
-      getWaveStat(report),
       getWaterTemperatureStat(report),
+      getGustStat(report),
     ],
   };
 
@@ -391,41 +419,6 @@ function getGustStat(report: MarineWeatherReportData): WeatherStat {
   };
 }
 
-function getWaveStat(report: MarineWeatherReportData): WeatherStat {
-  const wave = report.waveObservation;
-
-  return {
-    detail:
-      wave?.periodSeconds === undefined
-        ? "Latest buoy data unavailable"
-        : `${Math.round(wave.periodSeconds)} sec period`,
-    icon: Waves,
-    label: "Waves",
-    value:
-      wave?.heightFeet === undefined
-        ? "No buoy"
-        : `${wave.heightFeet.toFixed(1)} ft`,
-  };
-}
-
-function getCurrentStat(report: MarineWeatherReportData): WeatherStat {
-  const current = report.currentObservation;
-
-  return {
-    detail:
-      current?.direction ??
-      (current?.directionDegrees === undefined
-        ? "Current station unavailable"
-        : `${Math.round(current.directionDegrees)} deg`),
-    icon: Compass,
-    label: "Current",
-    value:
-      current?.speedKnots === undefined
-        ? "No station"
-        : `${current.speedKnots.toFixed(1)} kt`,
-  };
-}
-
 function getWaterTemperatureStat(report: MarineWeatherReportData): WeatherStat {
   const waterTemperature = report.waterTemperature;
 
@@ -440,6 +433,45 @@ function getWaterTemperatureStat(report: MarineWeatherReportData): WeatherStat {
         ? "No reading"
         : formatTemperature(waterTemperature.temperatureFahrenheit),
   };
+}
+
+function getWaveStats(report: MarineWeatherReportData): WeatherStat[] {
+  const wave = report.waveObservation;
+
+  if (!wave) {
+    return [];
+  }
+
+  const stats: WeatherStat[] = [];
+
+  if (wave.heightFeet !== undefined) {
+    stats.push({
+      detail: "Significant wave height",
+      icon: Waves,
+      label: "Height",
+      value: `${wave.heightFeet.toFixed(1)} ft`,
+    });
+  }
+
+  if (wave.periodSeconds !== undefined) {
+    stats.push({
+      detail: "Dominant period",
+      icon: Waves,
+      label: "Period",
+      value: `${Math.round(wave.periodSeconds)} sec`,
+    });
+  }
+
+  if (wave.directionDegrees !== undefined) {
+    stats.push({
+      detail: "Mean wave direction",
+      icon: Compass,
+      label: "Direction",
+      value: `${Math.round(wave.directionDegrees)} deg`,
+    });
+  }
+
+  return stats;
 }
 
 function formatTemperature(value?: number): string {

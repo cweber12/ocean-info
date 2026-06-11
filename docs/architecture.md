@@ -12,6 +12,8 @@ This matches the current constraints:
 - modular ocean activities
 - isolated API adapters and display modules
 
+The current exception for private credentials is a minimal Cloudflare Worker proxy for Movebank. The frontend remains static and calls a first-party edge endpoint; Movebank credentials stay in Worker secrets.
+
 ## Directory Structure
 
 ```txt
@@ -51,7 +53,7 @@ location/date filters
   -> activity module
   -> normalized domain data request
   -> data-source adapter
-  -> public external API
+  -> public external API OR Cloudflare edge proxy
   -> Zod validation
   -> normalized domain model
   -> activity display
@@ -72,6 +74,13 @@ Data-source modules:
 - own raw response schemas
 - validate external responses
 - map raw payloads into domain types
+
+Edge proxy modules (Cloudflare Worker):
+
+- hold private credentials in secrets
+- enforce request validation and allowlists
+- call private or credentialed upstream APIs
+- return normalized, minimal frontend payloads
 
 Domain modules:
 

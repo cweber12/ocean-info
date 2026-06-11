@@ -2,6 +2,7 @@ import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { CircleAlert, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { activityDefinitions, type ActivityId } from "../activities";
+import { fetchMovebankAnimalTracks } from "../data-sources/movebank/tracking";
 import {
   fetchInaturalistAnimalSightingGroups,
   fetchInaturalistAnimalSightings,
@@ -9,17 +10,20 @@ import {
 import { fetchNoaaTideReport } from "../data-sources/noaa/tides";
 import { fetchMarineWeatherReport } from "../data-sources/noaa/weather";
 import type { AnimalSightingSearch } from "../domain/animal-sightings/types";
+import type { AnimalTrackingSearch } from "../domain/animal-tracking/types";
 import type { AnimalSightingActivityId } from "../domain/location/types";
 import { coastalLocations } from "../locations/southern-california-coast";
 import { getBuoyStationById } from "../locations/buoy-stations";
 import { getNearestTideStation, getTideStationById } from "../locations/tide-stations";
 import { AnimalSightingsPanel } from "../shared/components/AnimalSightingsPanel";
+import { AnimalTrackingPanel } from "../shared/components/AnimalTrackingPanel";
 import { CoastalMapPanel } from "../shared/components/CoastalMapPanel";
 import { TideReport } from "../shared/components/TideReport";
 import {
   HeaderWeatherSummary,
   MarineWeatherReport,
 } from "../shared/components/WeatherReport";
+import { appConfig } from "../shared/config/app";
 import { toIsoDate } from "../shared/utils/date";
 import { getPlannerContent } from "./plannerContent";
 
@@ -117,6 +121,12 @@ function isAnimalSightingActivityId(
   return animalSightingActivityIds.has(activityId);
 }
 
+function getIsoDateDaysAgo(daysBack: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - daysBack);
+  return toIsoDate(date);
+}
+
 export function App() {
   const [plannerState, setPlannerState] = useState(getPlannerStateFromUrl);
   const [animalDaysBack, setAnimalDaysBack] = useState(7);
@@ -125,6 +135,8 @@ export function App() {
   const [animalQuery, setAnimalQuery] = useState("");
   const [animalRadiusKm, setAnimalRadiusKm] = useState(5);
   const [isCautionOpen, setIsCautionOpen] = useState(false);
+
+  const isMovebankTrackingEnabled = appConfig.features.movebankTracking;
 
   const selectedLocation = useMemo(
     () =>
@@ -209,6 +221,26 @@ export function App() {
       ? { ...animalSearch, query: "" }
       : animalSearch;
 
+  const animalTrackingSearch = useMemo<AnimalTrackingSearch | undefined>(() => {
+    if (!isMovebankTrackingEnabled) {
+      return undefined;
+    }
+
+    if (!isAnimalSightingActivityId(plannerState.activityId)) {
+      return undefined;
+    }
+
+    return {
+      activityId: plannerState.activityId,
+      center:
+        selectedLocation.animalSightingCenters?.[plannerState.activityId] ??
+        selectedLocation.point,
+      dateEnd: toIsoDate(new Date()),
+      daysBack: appConfig.movebank.defaultDaysBack,
+      radiusKm: appConfig.movebank.defaultRadiusKm,
+    };
+  }, [isMovebankTrackingEnabled, plannerState.activityId, selectedLocation]);
+
   const animalGroupsQuery = useQuery({
     enabled: Boolean(animalSearchQuery),
     queryKey: [
@@ -249,6 +281,26 @@ export function App() {
       }
 
       return fetchInaturalistAnimalSightings(animalSearchQuery);
+    },
+  });
+
+  const animalTrackingQuery = useQuery({
+    enabled: Boolean(animalTrackingSearch),
+    queryKey: [
+      "movebank-animal-tracks",
+      animalTrackingSearch?.activityId,
+      animalTrackingSearch?.center.latitude,
+      animalTrackingSearch?.center.longitude,
+      animalTrackingSearch?.radiusKm,
+      getIsoDateDaysAgo(animalTrackingSearch?.daysBack ?? appConfig.movebank.defaultDaysBack),
+      animalTrackingSearch?.dateEnd,
+    ],
+    queryFn: () => {
+      if (!animalTrackingSearch) {
+        throw new Error("Animal tracking search is not available.");
+      }
+
+      return fetchMovebankAnimalTracks(animalTrackingSearch);
     },
   });
 
@@ -551,6 +603,20 @@ export function App() {
               </div>
 
               <div className="data-module-grid">
+                {animalTrackingSearch ? (
+                  <div className="data-module data-module-animal-tracking">
+                    <AnimalTrackingPanel
+                      errorMessage={
+                        animalTrackingQuery.error instanceof Error
+                          ? animalTrackingQuery.error.message
+                          : undefined
+                      }
+                      isLoading={animalTrackingQuery.isLoading}
+                      report={animalTrackingQuery.data}
+                    />
+                  </div>
+                ) : null}
+
                 {animalSearchQuery ? (
                   <div className="data-module data-module-animal">
                     <AnimalSightingsPanel

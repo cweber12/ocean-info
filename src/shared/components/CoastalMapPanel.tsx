@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { divIcon, latLngBounds } from "leaflet";
+import { divIcon, icon, latLngBounds } from "leaflet";
 import { MapContainer, Marker, TileLayer, Tooltip, useMap } from "react-leaflet";
-import marineSightingFishIconUrl from "../assets/fish-left-svgrepo-com.svg";
+import marineSightingFishSvg from "../assets/fish-left-svgrepo-com.svg?raw";
 import type { AnimalSighting } from "../../domain/animal-sightings/types";
 import type { CoastalLocation } from "../../domain/location/types";
 import type { TideStation } from "../../domain/tide/types";
@@ -204,7 +204,7 @@ export function CoastalMapPanel({
               <Marker
                 eventHandlers={{ click: () => setSelectedSightingId(sighting.id) }}
                 icon={buildSightingIcon()}
-                key={sighting.id}
+                key={`${sighting.id}-${marineSightingIconVersion}`}
                 position={[point.latitude, point.longitude]}
               >
                 <Tooltip direction="top" offset={[0, -14]} opacity={0.96} permanent={false}>
@@ -274,13 +274,32 @@ const mapPinBackground = `
   </svg>
 `;
 
-const marineSightingIcon = divIcon({
-  className: "coastal-map-marker coastal-map-marker-sighting",
-  html: `${mapPinBackground}<span><img alt="" src="${marineSightingFishIconUrl}" /></span>`,
+const marineSightingIcon = icon({
   iconAnchor: [18, 44],
   iconSize: [36, 44],
+  iconUrl: buildMarineSightingPinDataUri(),
   popupAnchor: [0, -30],
 });
+
+const marineSightingIconVersion = "dark-blue-fish-pin-v1";
+
+function buildMarineSightingPinDataUri() {
+  const fishPath = extractFirstSvgPath(marineSightingFishSvg);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 44">
+      <path d="M18 1.5C9.16 1.5 2 8.66 2 17.5c0 10.74 12.88 22.25 15.08 24.12.53.45 1.31.45 1.84 0C21.12 39.75 34 28.24 34 17.5 34 8.66 26.84 1.5 18 1.5Z" fill="#033c45" stroke="#ffffff" stroke-opacity="0.88" stroke-width="2"/>
+      <g transform="translate(5.7 6.2) scale(1.03)">
+        <path d="${fishPath}" fill="none" stroke="#f0a14c" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"/>
+      </g>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function extractFirstSvgPath(svg: string) {
+  return svg.match(/\sd="([^"]+)"/)?.[1] ?? "";
+}
 
 function getInitial(value: string) {
   return value.trim().charAt(0).toUpperCase() || "?";

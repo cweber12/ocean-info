@@ -1,0 +1,12 @@
+name = "movebank-worker"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+
+[vars]
+MOVEBANK_BASE_URL = "https://www.movebank.org"
+MOVEBANK_STUDY_IDS = ""
+MAX_DAYS_BACK = "30"
+MAX_RADIUS_KM = "100"
+
+# Add routes in your Cloudflare dashboard or uncomment and set these values.
+# routes = [{ pattern = "your-domain.com/api/movebank/*", zone_name = "your-domain.com" }]

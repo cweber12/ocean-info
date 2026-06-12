@@ -9,6 +9,7 @@ var allowedQueryKeys = /* @__PURE__ */ new Set([
   "daysBack",
   "radiusKm"
 ]);
+var weatherQueryKeys = /* @__PURE__ */ new Set(["date", "latitude", "longitude"]);
 var corsHeaders = {
   "access-control-allow-headers": "content-type",
   "access-control-allow-methods": "GET, OPTIONS",
@@ -23,55 +24,156 @@ var src_default = {
       return json({ error: "Method not allowed" }, 405);
     }
     const url = new URL(request.url);
-    if (!url.pathname.endsWith("/tracks")) {
-      return json({ error: "Not found" }, 404);
+    if (url.pathname.endsWith("/tracks")) {
+      return handleTracksRequest(url, request, env);
     }
-    let query;
-    try {
-      query = parseAndValidateQuery(url, env);
-    } catch (error) {
-      return json(
-        {
-          error: error instanceof Error ? error.message : "Invalid request"
-        },
-        400
-      );
+    if (url.pathname.endsWith("/fallback")) {
+      return handleWeatherFallbackRequest(url, env);
     }
-    const allowedStudyIds = parseAllowlistedStudyIds(env.MOVEBANK_STUDY_IDS);
-    if (allowedStudyIds.length === 0) {
-      return json(
-        {
-          error: "No allowlisted study IDs configured"
-        },
-        503
-      );
-    }
-    try {
-      const tracks = await fetchTracks({
-        allowedStudyIds,
-        credentials: {
-          password: env.MOVEBANK_PASSWORD,
-          username: env.MOVEBANK_USERNAME
-        },
-        query,
-        request,
-        upstreamBaseUrl: env.MOVEBANK_BASE_URL || "https://www.movebank.org"
-      });
-      const payload = {
-        sourceName: "Movebank",
-        totalTracks: tracks.length,
-        tracks
-      };
-      return json(payload, 200, {
-        "cache-control": "public, max-age=120, stale-while-revalidate=300"
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error("Movebank fetch failed", message);
-      return json({ error: `Movebank upstream request failed: ${message}` }, 502);
-    }
+    return json({ error: "Not found" }, 404);
   }
 };
+async function handleTracksRequest(url, request, env) {
+  let query;
+  try {
+    query = parseAndValidateQuery(url, env);
+  } catch (error) {
+    return json(
+      {
+        error: error instanceof Error ? error.message : "Invalid request"
+      },
+      400
+    );
+  }
+  const allowedStudyIds = parseAllowlistedStudyIds(env.MOVEBANK_STUDY_IDS);
+  if (allowedStudyIds.length === 0) {
+    return json(
+      {
+        error: "No allowlisted study IDs configured"
+      },
+      503
+    );
+  }
+  try {
+    const tracks = await fetchTracks({
+      allowedStudyIds,
+      credentials: {
+        password: env.MOVEBANK_PASSWORD,
+        username: env.MOVEBANK_USERNAME
+      },
+      query,
+      request,
+      upstreamBaseUrl: env.MOVEBANK_BASE_URL || "https://www.movebank.org"
+    });
+    const payload = {
+      sourceName: "Movebank",
+      totalTracks: tracks.length,
+      tracks
+    };
+    return json(payload, 200, {
+      "cache-control": "public, max-age=120, stale-while-revalidate=300"
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Movebank fetch failed", message);
+    return json({ error: `Movebank upstream request failed: ${message}` }, 502);
+  }
+}
+__name(handleTracksRequest, "handleTracksRequest");
+async function handleWeatherFallbackRequest(url, env) {
+  if (!env.OPEN_WEATHER_KEY) {
+    return json({ error: "OPEN_WEATHER_KEY is not configured" }, 503);
+  }
+  let query;
+  try {
+    query = parseAndValidateWeatherQuery(url);
+  } catch (error) {
+    return json(
+      {
+        error: error instanceof Error ? error.message : "Invalid request"
+      },
+      400
+    );
+  }
+  if (!isWithinOpenWeatherWindow(query.date)) {
+    return json(
+      {
+        error: "date must be from yesterday through 5 days ahead"
+      },
+      400
+    );
+  }
+  try {
+    const fallback = await fetchOpenWeatherFallback(query, env.OPEN_WEATHER_KEY);
+    return json(fallback, 200, {
+      "cache-control": "public, max-age=300, stale-while-revalidate=600"
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("OpenWeather fetch failed", message);
+    return json({ error: `OpenWeather upstream request failed: ${message}` }, 502);
+  }
+}
+__name(handleWeatherFallbackRequest, "handleWeatherFallbackRequest");
+async function fetchOpenWeatherFallback(query, apiKey) {
+  const upstreamUrl = new URL("https://api.openweathermap.org/data/3.0/onecall");
+  upstreamUrl.searchParams.set("lat", query.latitude.toFixed(4));
+  upstreamUrl.searchParams.set("lon", query.longitude.toFixed(4));
+  upstreamUrl.searchParams.set("appid", apiKey);
+  upstreamUrl.searchParams.set("units", "imperial");
+  upstreamUrl.searchParams.set("exclude", "minutely,daily,alerts");
+  const response = await fetch(upstreamUrl);
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Upstream status ${response.status}: ${body.slice(0, 200)}`);
+  }
+  const payload = await response.json();
+  const timezoneOffsetSeconds = payload.timezone_offset ?? 0;
+  const stationName = `OpenWeather ${query.latitude.toFixed(2)},${query.longitude.toFixed(2)}`;
+  const hourlyForecast = (payload.hourly ?? []).map((hour) => toFallbackPoint(hour, timezoneOffsetSeconds)).filter((item) => Boolean(item)).filter((point) => point.at.slice(0, 10) === query.date);
+  const summaryPoint = getSummaryPoint(hourlyForecast, query.date);
+  return {
+    sourceName: "OpenWeather",
+    stationName,
+    hourlyForecast,
+    summary: summaryPoint ? {
+      shortForecast: summaryPoint.shortForecast,
+      temperatureFahrenheit: summaryPoint.airTemperatureFahrenheit,
+      windDirection: summaryPoint.windDirection,
+      windSpeedMph: summaryPoint.windSpeedMph
+    } : void 0,
+    windObservation: summaryPoint ? {
+      at: summaryPoint.at,
+      direction: summaryPoint.windDirection,
+      directionDegrees: summaryPoint.windDirectionDegrees,
+      gustKnots: summaryPoint.windGustMph !== void 0 ? mphToKnots(summaryPoint.windGustMph) : void 0,
+      sourceName: "OpenWeather",
+      speedKnots: summaryPoint.windSpeedMph !== void 0 ? mphToKnots(summaryPoint.windSpeedMph) : void 0,
+      stationName
+    } : void 0
+  };
+}
+__name(fetchOpenWeatherFallback, "fetchOpenWeatherFallback");
+function toFallbackPoint(hour, timezoneOffsetSeconds) {
+  if (typeof hour.dt !== "number") {
+    return void 0;
+  }
+  const at = toIsoWithOffset(hour.dt, timezoneOffsetSeconds);
+  const directionDegrees = asNumber(hour.wind_deg);
+  return {
+    at,
+    airTemperatureFahrenheit: asNumber(hour.temp),
+    precipitationChancePercent: typeof hour.pop === "number" ? Math.round(hour.pop * 100) : void 0,
+    relativeHumidityPercent: asNumber(hour.humidity),
+    shortForecast: asString(hour.weather?.[0]?.description),
+    sourceName: "OpenWeather",
+    windDirection: toCardinal(directionDegrees),
+    windDirectionDegrees: directionDegrees,
+    windGustMph: asNumber(hour.wind_gust),
+    windSpeedMph: asNumber(hour.wind_speed)
+  };
+}
+__name(toFallbackPoint, "toFallbackPoint");
 async function fetchTracks({
   allowedStudyIds,
   credentials,
@@ -228,6 +330,34 @@ function parseAndValidateQuery(url, env) {
   };
 }
 __name(parseAndValidateQuery, "parseAndValidateQuery");
+function parseAndValidateWeatherQuery(url) {
+  const params = url.searchParams;
+  const rawSearch = url.search.replace(/^\?/, "");
+  for (const pair of rawSearch.split("&")) {
+    const key = pair.split("=")[0];
+    if (key && !weatherQueryKeys.has(decodeURIComponent(key))) {
+      throw new Error(`Unknown query parameter: ${decodeURIComponent(key)}`);
+    }
+  }
+  const latitude = Number(params.get("latitude"));
+  const longitude = Number(params.get("longitude"));
+  const date = params.get("date") ?? "";
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+    throw new Error("latitude must be a valid latitude");
+  }
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    throw new Error("longitude must be a valid longitude");
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error("date must be in YYYY-MM-DD format");
+  }
+  return {
+    date,
+    latitude,
+    longitude
+  };
+}
+__name(parseAndValidateWeatherQuery, "parseAndValidateWeatherQuery");
 function parseAllowlistedStudyIds(raw) {
   return raw.split(",").map((value) => value.trim()).filter(Boolean);
 }
@@ -252,10 +382,61 @@ function getStartDate(dateEndIso, daysBack) {
   return `${yyyy}-${mm}-${dd}`;
 }
 __name(getStartDate, "getStartDate");
+function isWithinOpenWeatherWindow(date) {
+  const target = /* @__PURE__ */ new Date(`${date}T00:00:00Z`);
+  const today = /* @__PURE__ */ new Date();
+  const base = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  const min = new Date(base);
+  min.setUTCDate(min.getUTCDate() - 1);
+  const max = new Date(base);
+  max.setUTCDate(max.getUTCDate() + 5);
+  return target >= min && target <= max;
+}
+__name(isWithinOpenWeatherWindow, "isWithinOpenWeatherWindow");
+function toIsoWithOffset(unixSeconds, timezoneOffsetSeconds) {
+  const utcMillis = unixSeconds * 1e3;
+  const localMillis = utcMillis + timezoneOffsetSeconds * 1e3;
+  const isoLocal = new Date(localMillis).toISOString().slice(0, 19);
+  const sign = timezoneOffsetSeconds >= 0 ? "+" : "-";
+  const abs = Math.abs(timezoneOffsetSeconds);
+  const hours = String(Math.floor(abs / 3600)).padStart(2, "0");
+  const minutes = String(Math.floor(abs % 3600 / 60)).padStart(2, "0");
+  return `${isoLocal}${sign}${hours}:${minutes}`;
+}
+__name(toIsoWithOffset, "toIsoWithOffset");
+function toCardinal(directionDegrees) {
+  if (directionDegrees === void 0) {
+    return void 0;
+  }
+  const normalized = (directionDegrees % 360 + 360) % 360;
+  const labels = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  const index = Math.round(normalized / 45) % labels.length;
+  return labels[index];
+}
+__name(toCardinal, "toCardinal");
+function mphToKnots(speedMph) {
+  return Number((speedMph * 0.868976).toFixed(2));
+}
+__name(mphToKnots, "mphToKnots");
+function getSummaryPoint(points, date) {
+  if (points.length === 0) {
+    return void 0;
+  }
+  const now = /* @__PURE__ */ new Date();
+  if (date !== now.toISOString().slice(0, 10)) {
+    return points[0];
+  }
+  return points.find((point) => new Date(point.at) >= now) ?? points[0];
+}
+__name(getSummaryPoint, "getSummaryPoint");
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 __name(clamp, "clamp");
+function asString(value) {
+  return typeof value === "string" && value.trim().length > 0 ? value : void 0;
+}
+__name(asString, "asString");
 function asNumber(value) {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -320,7 +501,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-ViK9m5/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-I3z5OO/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -352,7 +533,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-ViK9m5/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-I3z5OO/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

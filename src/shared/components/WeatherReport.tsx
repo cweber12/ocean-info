@@ -197,7 +197,12 @@ function WaveObservationChart({ report }: { report: MarineWeatherReportData }) {
   const observation = report.waveObservation;
 
   if (!observation) {
-    return <div className="weather-chart-empty">No wave observation chart available.</div>;
+    return (
+      <ChartEmptyState
+        detail="Latest water readings are still shown when available."
+        title="No wave chart data"
+      />
+    );
   }
 
   const metrics = [
@@ -222,7 +227,12 @@ function WaveObservationChart({ report }: { report: MarineWeatherReportData }) {
   ].filter((metric) => metric.value !== undefined);
 
   if (metrics.length === 0) {
-    return <div className="weather-chart-empty">No wave observation chart available.</div>;
+    return (
+      <ChartEmptyState
+        detail="The selected buoy did not report height, period, or direction."
+        title="No wave chart data"
+      />
+    );
   }
 
   const plotBottom = height - padding.bottom;
@@ -324,7 +334,12 @@ function WindForecastChart({
   const domainEndMinute = 24 * 60 - 1;
 
   if (chartPoints.length === 0) {
-    return <div className="weather-chart-empty">No hourly wind chart available.</div>;
+    return (
+      <ChartEmptyState
+        detail="NWS did not return hourly periods for this date."
+        title="No hourly wind data"
+      />
+    );
   }
 
   const speeds = chartPoints.flatMap((point) => [
@@ -435,6 +450,22 @@ function WindForecastChart({
         {xAxisLabel}
       </text>
     </svg>
+  );
+}
+
+function ChartEmptyState({
+  detail,
+  title,
+}: {
+  detail: string;
+  title: string;
+}) {
+  return (
+    <div className="weather-chart-empty">
+      <span aria-hidden="true" />
+      <strong>{title}</strong>
+      <small>{detail}</small>
+    </div>
   );
 }
 

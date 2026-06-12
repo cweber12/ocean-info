@@ -441,7 +441,7 @@ export function App() {
         <div className="shell">
           <section className="planner-layout" aria-label="Ocean planner">
             <section className="planner-board" aria-label="Activity details">
-              <div className="planner-hero-row">
+              <div className="planner-summary-row">
                 <DaySummaryPanel
                   activityId={plannerState.activityId}
                   formattedDate={formattedDate}
@@ -456,15 +456,48 @@ export function App() {
                   tideReport={tideReportQuery.data}
                   weatherReport={marineWeatherQuery.data}
                 />
-
-                <CoastalMapPanel
-                  buoyStation={buoyStation}
-                  location={selectedLocation}
-                  showSightingPins={isAnimalSightingActivityId(plannerState.activityId)}
-                  sightings={mapSightings}
-                  tideStation={tideStation}
-                />
               </div>
+
+              {(animalSearchQuery || buoyStation) && (
+                <div className="planner-sightings-map-card">
+                  {animalSearchQuery ? (
+                    <div className="planner-sightings-subsection">
+                      <AnimalSightingsPanel
+                        daysBack={animalDaysBack}
+                        errorMessage={
+                          animalGroupsQuery.error instanceof Error
+                            ? animalGroupsQuery.error.message
+                            : animalSightingsQuery.error instanceof Error
+                              ? animalSightingsQuery.error.message
+                              : undefined
+                        }
+                        groupReport={animalGroupsQuery.data}
+                        isGroupsLoading={animalGroupsQuery.isLoading}
+                        isSightingsLoading={animalSightingsQuery.isLoading}
+                        onDaysBackChange={setAnimalDaysBack}
+                        onPageChange={setAnimalPage}
+                        onQueryChange={setAnimalQuery}
+                        onRadiusKmChange={setAnimalRadiusKm}
+                        page={animalPage}
+                        query={animalQuery}
+                        radiusKm={animalRadiusKm}
+                        sightingPage={animalSightingsQuery.data}
+                        variant={animalSearchQuery.activityId}
+                      />
+                    </div>
+                  ) : null}
+
+                  <div className="planner-map-subsection">
+                    <CoastalMapPanel
+                      buoyStation={buoyStation}
+                      location={selectedLocation}
+                      showSightingPins={isAnimalSightingActivityId(plannerState.activityId)}
+                      sightings={mapSightings}
+                      tideStation={tideStation}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="data-module-grid">
                 {animalTrackingSearch ? (
@@ -477,35 +510,6 @@ export function App() {
                       }
                       isLoading={animalTrackingQuery.isLoading}
                       report={animalTrackingQuery.data}
-                    />
-                  </div>
-                ) : null}
-
-                {animalSearchQuery ? (
-                  <div className="data-module data-module-animal">
-                    <AnimalSightingsPanel
-                      daysBack={animalDaysBack}
-                      errorMessage={
-                        animalGroupsQuery.error instanceof Error
-                          ? animalGroupsQuery.error.message
-                          : animalSightingsQuery.error instanceof Error
-                            ? animalSightingsQuery.error.message
-                            : undefined
-                      }
-                      groupReport={animalGroupsQuery.data}
-                      isExpanded={animalIsExpanded}
-                      isGroupsLoading={animalGroupsQuery.isLoading}
-                      isSightingsLoading={animalSightingsQuery.isLoading}
-                      onDaysBackChange={setAnimalDaysBack}
-                      onExpandedChange={setAnimalIsExpanded}
-                      onPageChange={setAnimalPage}
-                      onQueryChange={setAnimalQuery}
-                      onRadiusKmChange={setAnimalRadiusKm}
-                      page={animalPage}
-                      query={animalQuery}
-                      radiusKm={animalRadiusKm}
-                      sightingPage={animalSightingsQuery.data}
-                      variant={animalSearchQuery.activityId}
                     />
                   </div>
                 ) : null}

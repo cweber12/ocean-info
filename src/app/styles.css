@@ -350,10 +350,73 @@ input:hover {
   align-items: start;
 }
 
-.planner-hero-row {
+.planner-board {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.planner-summary-row {
   display: grid;
   gap: var(--space-5);
   align-items: start;
+}
+
+.planner-sightings-map-card {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  color: var(--color-text-primary);
+  background: var(--color-surface-glass-strong);
+  border: 1px solid var(--color-border-glass-panel);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(12px);
+}
+
+.planner-sightings-subsection {
+  display: grid;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.planner-sightings-subsection:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.planner-map-subsection {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.planner-sightings-map-card .coastal-map-panel {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.planner-sightings-map-card .coastal-map-panel .section-heading {
+  margin-bottom: var(--space-3);
+}
+
+.planner-sightings-map-card .animal-sightings {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.planner-sightings-map-card .animal-sightings-heading {
+  margin-bottom: var(--space-3);
+}
+
+.planner-sightings-map-card .animal-sightings-panel {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .icon-button:focus-visible,
@@ -367,11 +430,6 @@ label:focus-within > span {
 select:focus-visible,
 input:focus-visible {
   box-shadow: var(--shadow-md);
-}
-
-.planner-board {
-  display: grid;
-  gap: var(--space-5);
 }
 
 .data-module-grid {
@@ -2021,8 +2079,9 @@ input:focus-visible {
     width: min(100%, 70rem);
   }
 
-  .planner-hero-row {
-    grid-template-columns: minmax(0, 1.08fr) minmax(22rem, 0.92fr);
+  .planner-sightings-map-card {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
   }
 
   .coastal-map-frame,

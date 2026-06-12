@@ -1,4 +1,4 @@
-import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CircleAlert, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { activityDefinitions, type ActivityId } from "../activities";
@@ -350,45 +350,6 @@ export function App() {
     }));
   }
 
-  function handleActivityKeyDown(
-    event: KeyboardEvent<HTMLButtonElement>,
-    activityId: ActivityId,
-  ) {
-    const currentIndex = activityDefinitions.findIndex(
-      (activity) => activity.id === activityId,
-    );
-
-    const keyMoves: Record<string, number> = {
-      ArrowDown: 1,
-      ArrowRight: 1,
-      ArrowLeft: -1,
-      ArrowUp: -1,
-    };
-
-    let nextIndex = currentIndex;
-
-    if (event.key in keyMoves) {
-      event.preventDefault();
-      nextIndex =
-        (currentIndex + keyMoves[event.key] + activityDefinitions.length) %
-        activityDefinitions.length;
-    } else if (event.key === "Home") {
-      event.preventDefault();
-      nextIndex = 0;
-    } else if (event.key === "End") {
-      event.preventDefault();
-      nextIndex = activityDefinitions.length - 1;
-    } else {
-      return;
-    }
-
-    const nextActivity = activityDefinitions[nextIndex];
-    selectActivity(nextActivity.id);
-    window.requestAnimationFrame(() => {
-      document.getElementById(`activity-tab-${nextActivity.id}`)?.focus();
-    });
-  }
-
   return (
     <main className="app-frame">
       <header className="site-header">
@@ -416,11 +377,6 @@ export function App() {
               className="header-planner"
               aria-label="Plan by location and date"
             >
-              
-              <div className="control-strip-heading">
-                <p className="eyebrow">Plan by</p>
-                <h2>Location and date</h2>
-              </div>
               <div className="control-strip">
                 <div>
                   <label htmlFor="location-select">
@@ -459,46 +415,23 @@ export function App() {
                     />
                   </label>
                 </div>
-              </div>
-
-              <section
-                className="activity-tabs activity-tabs--header"
-                aria-labelledby="activity-heading"
-              >
-                <div className="activity-tabs-heading">
-                  <p className="eyebrow">Activities</p>
-                  <h2 id="activity-heading">Choose activity</h2>
-                </div>
-
-                <p className="sr-only" id="activity-selector-help">
-                  Choose one ocean activity. Arrow keys move between activities.
-                </p>
-
-                <div
-                  className="activity-list"
-                  role="tablist"
-                  aria-labelledby="activity-heading"
-                  aria-describedby="activity-selector-help"
-                >
-                  {activityDefinitions.map((activity) => (
-                    <button
-                      id={`activity-tab-${activity.id}`}
-                      className="activity-link"
-                      type="button"
-                      role="tab"
-                      aria-selected={activity.id === plannerState.activityId}
-                      aria-controls="planner-panel"
-                      tabIndex={activity.id === plannerState.activityId ? 0 : -1}
-                      key={activity.id}
-                      onClick={() => selectActivity(activity.id)}
-                      onKeyDown={(event) => handleActivityKeyDown(event, activity.id)}
+                <div>
+                  <label htmlFor="activity-select" id="activity-select-label">
+                    <span>Activity</span>
+                    <select
+                      id="activity-select"
+                      value={plannerState.activityId}
+                      onChange={(event) => selectActivity(event.target.value as ActivityId)}
                     >
-                      <span>{activity.name}</span>
-                      <small>{activity.dataNeeds.length} checks</small>
-                    </button>
-                  ))}
+                      {activityDefinitions.map((activity) => (
+                        <option key={activity.id} value={activity.id}>
+                          {activity.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
-              </section>
+              </div>
             </section>
           </div>
         </div>
@@ -512,8 +445,7 @@ export function App() {
                 <section
                   className="recommendation-panel recommendation-panel--compact"
                   id="planner-panel"
-                  role="tabpanel"
-                  aria-labelledby={`activity-tab-${plannerState.activityId}`}
+                  aria-labelledby="activity-select-label"
                   aria-live="polite"
                   data-tone={plannerContent.recommendation.tone}
                 >

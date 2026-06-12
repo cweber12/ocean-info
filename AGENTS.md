@@ -45,6 +45,8 @@ Commit messages must use a conventional type in the subject and a What/How/Why b
 
 After each completed task or vertical slice, provide a commit message for that slice.
 
+After each completed update, automatically create a commit using the required format.
+
 Format:
 
 ```txt

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { CircleAlert, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { activityDefinitions, type ActivityId } from "../activities";
 import { fetchMovebankAnimalTracks } from "../data-sources/movebank/tracking";
@@ -18,6 +17,7 @@ import { getNearestTideStation, getTideStationById } from "../locations/tide-sta
 import { AnimalSightingsPanel } from "../shared/components/AnimalSightingsPanel";
 import { AnimalTrackingPanel } from "../shared/components/AnimalTrackingPanel";
 import { CoastalMapPanel } from "../shared/components/CoastalMapPanel";
+import { DaySummaryPanel } from "../shared/components/DaySummaryPanel";
 import { TideReport } from "../shared/components/TideReport";
 import {
   HeaderWeatherSummary,
@@ -442,92 +442,20 @@ export function App() {
           <section className="planner-layout" aria-label="Ocean planner">
             <section className="planner-board" aria-label="Activity details">
               <div className="planner-hero-row">
-                <section
-                  className="recommendation-panel recommendation-panel--compact"
-                  id="planner-panel"
-                  aria-labelledby="activity-select-label"
-                  aria-live="polite"
-                  data-tone={plannerContent.recommendation.tone}
-                >
-                  <div className="recommendation-top">
-                    <div className="recommendation-copy">
-                      <p className="eyebrow">Recommendation</p>
-                      <h2>{plannerContent.recommendation.label}</h2>
-                      <p>{plannerContent.recommendation.summary}</p>
-                    </div>
-
-                    <div className="caution-popover-wrap">
-                      <button
-                        className="icon-button caution-trigger"
-                        type="button"
-                        aria-label={`Open cautions for ${selectedActivity.name}`}
-                        aria-expanded={isCautionOpen}
-                        aria-controls="caution-popover"
-                        onClick={() => setIsCautionOpen((open) => !open)}
-                      >
-                        <CircleAlert aria-hidden="true" size={20} strokeWidth={2.2} />
-                      </button>
-
-                      {isCautionOpen ? (
-                        <div
-                          className="caution-popover"
-                          id="caution-popover"
-                          role="dialog"
-                          aria-labelledby="caution-popover-title"
-                          data-tone={plannerContent.caution.tone}
-                          onKeyDown={(event) => {
-                            if (event.key === "Escape") {
-                              setIsCautionOpen(false);
-                            }
-                          }}
-                        >
-                          <div className="caution-popover-heading">
-                            <div>
-                              <p className="eyebrow">Cautions</p>
-                              <h3 id="caution-popover-title">
-                                {plannerContent.caution.label}
-                              </h3>
-                            </div>
-                            <button
-                              className="icon-button"
-                              type="button"
-                              aria-label="Close cautions"
-                              onClick={() => setIsCautionOpen(false)}
-                            >
-                              <X aria-hidden="true" size={18} strokeWidth={2.2} />
-                            </button>
-                          </div>
-                          <p>{plannerContent.caution.message}</p>
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <dl className="recommendation-context">
-                    <div>
-                      <dt>Activity</dt>
-                      <dd>{selectedActivity.name}</dd>
-                    </div>
-                    <div>
-                      <dt>Location</dt>
-                      <dd>{selectedLocation.name}</dd>
-                    </div>
-                    <div>
-                      <dt>Date</dt>
-                      <dd>{formattedDate}</dd>
-                    </div>
-                  </dl>
-
-                  <div className="recommendation-reason">
-                    <span>Why this works</span>
-                    <p>{plannerContent.bestWindow.reason}</p>
-                  </div>
-
-                  <div className="best-window-summary">
-                    <span>Best window</span>
-                    <strong>{plannerContent.bestWindow.label}</strong>
-                  </div>
-                </section>
+                <DaySummaryPanel
+                  activityId={plannerState.activityId}
+                  formattedDate={formattedDate}
+                  isCautionOpen={isCautionOpen}
+                  isTideLoading={tideReportQuery.isLoading}
+                  isWeatherLoading={marineWeatherQuery.isLoading}
+                  onCautionClose={() => setIsCautionOpen(false)}
+                  onCautionToggle={() => setIsCautionOpen((open) => !open)}
+                  plannerContent={plannerContent}
+                  selectedActivity={selectedActivity}
+                  selectedLocation={selectedLocation}
+                  tideReport={tideReportQuery.data}
+                  weatherReport={marineWeatherQuery.data}
+                />
 
                 <CoastalMapPanel
                   buoyStation={buoyStation}

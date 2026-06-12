@@ -129,11 +129,10 @@ function getIsoDateDaysAgo(daysBack: number) {
 
 export function App() {
   const [plannerState, setPlannerState] = useState(getPlannerStateFromUrl);
-  const [animalDaysBack, setAnimalDaysBack] = useState(7);
-  const [animalIsExpanded, setAnimalIsExpanded] = useState(false);
+  const [animalDaysBack, setAnimalDaysBack] = useState(30);
   const [animalPage, setAnimalPage] = useState(1);
   const [animalQuery, setAnimalQuery] = useState("");
-  const [animalRadiusKm, setAnimalRadiusKm] = useState(5);
+  const [animalRadiusKm, setAnimalRadiusKm] = useState(10);
   const [isCautionOpen, setIsCautionOpen] = useState(false);
 
   const isMovebankTrackingEnabled = appConfig.features.movebankTracking;
@@ -309,7 +308,7 @@ export function App() {
     [plannerState.activityId],
   );
 
-  const mapSightings = animalSightingsQuery.data?.allSightings ?? [];
+  const mapSightings = animalSightingsQuery.data?.sightings ?? [];
 
   const formattedDate = useMemo(
     () =>
@@ -330,7 +329,6 @@ export function App() {
   }, [plannerState.activityId, plannerState.date, plannerState.locationId]);
 
   useEffect(() => {
-    setAnimalIsExpanded(false);
     setAnimalPage(1);
   }, [plannerState.activityId, plannerState.locationId]);
 
@@ -459,7 +457,9 @@ export function App() {
               </div>
 
               {(animalSearchQuery || buoyStation) && (
-                <div className="planner-sightings-map-card">
+                <div
+                  className={`planner-sightings-map-card${animalSearchQuery ? " planner-sightings-map-card--split" : ""}`}
+                >
                   {animalSearchQuery ? (
                     <div className="planner-sightings-subsection">
                       <AnimalSightingsPanel

@@ -116,9 +116,10 @@ export async function fetchInaturalistAnimalSightingGroups(
 
   return {
     groups: mergeSightingGroups({
+      activityId: search.activityId,
       needsIdResults: needsIdResponse.results,
       researchResults: researchResponse.results,
-    }).sort(compareSightingGroups),
+    }).sort((first, second) => compareSightingGroups(first, second, search.activityId)),
     search,
     sourceName: inaturalistSourceName,
     totalResults:
@@ -141,9 +142,9 @@ export async function fetchInaturalistAnimalSightings(
     observationsResponseSchema,
   );
   const researchSightings = researchResponse.results
-    .filter(hasMarineishTaxon)
+    .filter((observation) => hasMarineishTaxon(observation, search))
     .map(mapSighting)
-    .sort(compareSightings);
+    .sort((first, second) => compareSightings(first, second, search.activityId));
   const needsIdResponse = await getJson(
     buildObservationsUrl(search, {
       endpoint: "observations",
@@ -154,9 +155,9 @@ export async function fetchInaturalistAnimalSightings(
     observationsResponseSchema,
   );
   const needsIdSightings = needsIdResponse.results
-    .filter(hasMarineishTaxon)
+    .filter((observation) => hasMarineishTaxon(observation, search))
     .map(mapSighting)
-    .sort(compareSightings);
+    .sort((first, second) => compareSightings(first, second, search.activityId));
   const sightings = [...researchSightings, ...needsIdSightings];
   const pageStart = (page - 1) * perPage;
 
@@ -249,16 +250,18 @@ function mapSighting(
 }
 
 function mergeSightingGroups({
+  activityId,
   needsIdResults,
   researchResults,
 }: {
+  activityId: AnimalSightingSearch["activityId"];
   needsIdResults: Array<z.infer<typeof speciesCountSchema>>;
   researchResults: Array<z.infer<typeof speciesCountSchema>>;
 }) {
   const groupsByTaxonId = new Map<number, AnimalSightingGroup>();
 
   for (const result of researchResults) {
-    if (!isMarineishTaxon(result.taxon)) {
+    if (!isMarineishTaxon(result.taxon, activityId)) {
       continue;
     }
 
@@ -270,7 +273,7 @@ function mergeSightingGroups({
   }
 
   for (const result of needsIdResults) {
-    if (!isMarineishTaxon(result.taxon)) {
+    if (!isMarineishTaxon(result.taxon, activityId)) {
       continue;
     }
 
@@ -316,13 +319,21 @@ function mapTaxon(taxon: InaturalistTaxon): AnimalTaxon {
 
 function hasMarineishTaxon(
   observation: InaturalistObservation,
+  search: AnimalSightingSearch,
 ): observation is InaturalistObservation & {
   taxon: InaturalistTaxon;
 } {
-  return Boolean(observation.taxon && isMarineishTaxon(observation.taxon));
+  return Boolean(
+    observation.taxon &&
+      isMarineishTaxon(observation.taxon, search.activityId) &&
+      isLikelyCoastalOrOceanSighting(observation, search),
+  );
 }
 
-function isMarineishTaxon(taxon: InaturalistTaxon): boolean {
+function isMarineishTaxon(
+  taxon: InaturalistTaxon,
+  activityId: AnimalSightingSearch["activityId"],
+): boolean {
   const iconicTaxonName = taxon.iconic_taxon_name?.toLowerCase();
 
   if (iconicTaxonName === "actinopterygii" || iconicTaxonName === "mollusca") {
@@ -344,7 +355,13 @@ function isMarineishTaxon(taxon: InaturalistTaxon): boolean {
     .join(" ")
     .toLowerCase();
 
-  return marineNameHints.some((hint) => searchableName.includes(hint));
+  if (marineNameHints.some((hint) => searchableName.includes(hint))) {
+    return true;
+  }
+
+  return activityPriorityNameHints[activityId].some((hint) =>
+    searchableName.includes(hint),
+  );
 }
 
 const marineAncestryTaxonIds = [
@@ -412,10 +429,95 @@ const marineNameHints = [
   "wrasse",
 ];
 
+const activityPriorityNameHints: Record<
+  AnimalSightingSearch["activityId"],
+  string[]
+> = {
+  dive: [
+    "shark",
+    "octopus",
+    "turtle",
+    "whale",
+    "dolphin",
+    "seal",
+    "sea lion",
+    "fish",
+    "sculpin",
+    "garibaldi",
+    "sea bass",
+    "ray",
+  ],
+  tidepools: [
+    "nudibranch",
+    "anemone",
+    "octopus",
+    "sea slug",
+    "sea snail",
+    "sea cucumber",
+    "chiton",
+    "hermit crab",
+    "shore crab",
+    "sea star",
+    "urchin",
+    "limpet",
+    "mussel",
+    "barnacle",
+  ],
+};
+
+const marinePlaceNameHints = [
+  "beach",
+  "coast",
+  "cove",
+  "harbor",
+  "intertidal",
+  "jetty",
+  "lagoon",
+  "marine",
+  "ocean",
+  "offshore",
+  "pier",
+  "reef",
+  "rocky shore",
+  "salt marsh",
+  "sea",
+  "shore",
+  "surf",
+  "tide",
+  "tidal",
+  "tidepool",
+];
+
+const inlandPlaceNameHints = [
+  "canyon",
+  "creek",
+  "desert",
+  "forest",
+  "garden",
+  "hills",
+  "inland",
+  "lake",
+  "mountain",
+  "park",
+  "reservoir",
+  "river",
+  "trail",
+  "valley",
+];
+
 function compareSightingGroups(
   first: AnimalSightingGroup,
   second: AnimalSightingGroup,
+  activityId: AnimalSightingSearch["activityId"],
 ) {
+  const priorityDelta =
+    getTaxonPriorityScore(second.taxon, activityId) -
+    getTaxonPriorityScore(first.taxon, activityId);
+
+  if (priorityDelta !== 0) {
+    return priorityDelta;
+  }
+
   const firstHasResearch = (first.researchCount ?? 0) > 0;
   const secondHasResearch = (second.researchCount ?? 0) > 0;
 
@@ -428,7 +530,19 @@ function compareSightingGroups(
   );
 }
 
-function compareSightings(first: AnimalSighting, second: AnimalSighting) {
+function compareSightings(
+  first: AnimalSighting,
+  second: AnimalSighting,
+  activityId: AnimalSightingSearch["activityId"],
+) {
+  const priorityDelta =
+    getTaxonPriorityScore(second.taxon, activityId) -
+    getTaxonPriorityScore(first.taxon, activityId);
+
+  if (priorityDelta !== 0) {
+    return priorityDelta;
+  }
+
   if (first.qualityGrade !== second.qualityGrade) {
     return first.qualityGrade === "research" ? -1 : 1;
   }
@@ -442,6 +556,58 @@ function getTaxonDisplayName(taxon: AnimalTaxon) {
 
 function getDateTime(date?: string) {
   return date ? new Date(`${date}T12:00:00`).getTime() : 0;
+}
+
+function getTaxonPriorityScore(
+  taxon: AnimalTaxon,
+  activityId: AnimalSightingSearch["activityId"],
+) {
+  const searchableName = [taxon.commonName, taxon.name, taxon.iconicTaxonName]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const rankedHints = activityPriorityNameHints[activityId];
+
+  for (let index = 0; index < rankedHints.length; index += 1) {
+    if (searchableName.includes(rankedHints[index])) {
+      return rankedHints.length - index;
+    }
+  }
+
+  return 0;
+}
+
+function isLikelyCoastalOrOceanSighting(
+  observation: InaturalistObservation,
+  search: AnimalSightingSearch,
+) {
+  const placeGuess = observation.place_guess?.toLowerCase() ?? "";
+  const hasMarinePlaceHint = marinePlaceNameHints.some((hint) =>
+    placeGuess.includes(hint),
+  );
+  const hasInlandPlaceHint = inlandPlaceNameHints.some((hint) =>
+    placeGuess.includes(hint),
+  );
+
+  if (hasInlandPlaceHint && !hasMarinePlaceHint) {
+    return false;
+  }
+
+  const point = mapObservationPoint(observation.geojson);
+  if (!point) {
+    return true;
+  }
+
+  return !isLikelyFarInlandFromCoast(point, search.center);
+}
+
+function isLikelyFarInlandFromCoast(point: GeoPoint, center: GeoPoint) {
+  const latitudeRadians = (center.latitude * Math.PI) / 180;
+  const kilometersPerDegreeLongitude = 111.32 * Math.cos(latitudeRadians);
+  const deltaLongitude = point.longitude - center.longitude;
+  const eastwardKilometers = deltaLongitude * kilometersPerDegreeLongitude;
+
+  return eastwardKilometers > 2;
 }
 
 function mapObservationPoint(

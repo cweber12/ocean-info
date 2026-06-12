@@ -1,9 +1,15 @@
 import type { CoastalLocation } from "../../domain/location/types";
 import type { TideStation } from "../../domain/tide/types";
-import type { MarineWeatherReport } from "../../domain/weather/types";
+import type {
+  HeaderWeatherSummary,
+  HourlyWeatherPoint,
+  MarineWeatherReport,
+  WindObservation,
+} from "../../domain/weather/types";
 import { fetchNdbcWaveObservation } from "../ndbc/waves";
 import { fetchCoopsObservationSummary } from "./observations";
 import { fetchNwsWeatherForecast } from "../nws/weather";
+import { fetchOpenWeatherFallback } from "../open-weather/weather";
 
 export interface MarineWeatherReportRequest {
   date: string;
@@ -16,12 +22,21 @@ export async function fetchMarineWeatherReport({
   location,
   tideStation,
 }: MarineWeatherReportRequest): Promise<MarineWeatherReport> {
-  const [forecast, observations, waves] = await Promise.all([
-    fetchNwsWeatherForecast({
-      date,
-      latitude: location.point.latitude,
-      longitude: location.point.longitude,
-    }),
+  const [forecast, fallbackWeather, observations, waves] = await Promise.all([
+    fetchOptional(() =>
+      fetchNwsWeatherForecast({
+        date,
+        latitude: location.point.latitude,
+        longitude: location.point.longitude,
+      }),
+    ),
+    fetchOptional(() =>
+      fetchOpenWeatherFallback({
+        date,
+        latitude: location.point.latitude,
+        longitude: location.point.longitude,
+      }),
+    ),
     fetchOptional(() =>
       fetchCoopsObservationSummary({
         currentStationId: location.stationHints?.currentStationId,
@@ -39,31 +54,116 @@ export async function fetchMarineWeatherReport({
         )
       : Promise.resolve(undefined),
   ]);
+
+  const hourlyForecast = mergeHourlyForecast(
+    forecast?.hourlyForecast,
+    fallbackWeather?.hourlyForecast,
+  );
+  const summary = mergeSummary(forecast?.summary, fallbackWeather?.summary);
+  const windObservation = mergeWindObservation(
+    observations?.windObservation,
+    fallbackWeather?.windObservation,
+  );
+  const weatherSourceName = getWeatherSourceName({
+    fallbackUsed: Boolean(fallbackWeather),
+    nwsUsed: Boolean(forecast),
+  });
+
   const unavailable = [
-    observations?.windObservation ? undefined : "CO-OPS wind observation",
+    windObservation ? undefined : "Wind observation",
     observations?.waterTemperature ? undefined : "CO-OPS water temperature",
     observations?.currentObservation ? undefined : "CO-OPS current observation",
+    hourlyForecast.length > 0 || summary ? undefined : "Hourly weather forecast",
     waves ? undefined : "NDBC wave observation",
   ].filter((item): item is string => Boolean(item));
 
   return {
     date,
-    hourlyForecast: forecast.hourlyForecast,
+    hourlyForecast,
     locationId: location.id,
-    sourceName: "NOAA / National Weather Service",
+    sourceName: weatherSourceName,
     stationNames: {
       current: location.stationHints?.currentStationId,
       water: tideStation.name,
       waves: location.stationHints?.buoyStationId,
-      weather: forecast.stationName,
+      weather: forecast?.stationName ?? fallbackWeather?.stationName,
     },
-    summary: forecast.summary,
+    summary,
     unavailable,
     currentObservation: observations?.currentObservation,
     waterTemperature: observations?.waterTemperature,
     waveObservation: waves,
-    windObservation: observations?.windObservation,
+    windObservation,
   };
+}
+
+function mergeHourlyForecast(
+  primary?: HourlyWeatherPoint[],
+  fallback?: HourlyWeatherPoint[],
+): HourlyWeatherPoint[] {
+  if (!primary?.length) {
+    return fallback ?? [];
+  }
+
+  if (!fallback?.length) {
+    return primary;
+  }
+
+  const byTime = new Map(primary.map((point) => [point.at, point]));
+
+  for (const point of fallback) {
+    if (!byTime.has(point.at)) {
+      byTime.set(point.at, point);
+    }
+  }
+
+  return Array.from(byTime.values()).sort((a, b) => a.at.localeCompare(b.at));
+}
+
+function mergeSummary(
+  primary?: HeaderWeatherSummary,
+  fallback?: HeaderWeatherSummary,
+): HeaderWeatherSummary | undefined {
+  if (!primary) {
+    return fallback;
+  }
+
+  return {
+    shortForecast: primary.shortForecast ?? fallback?.shortForecast,
+    temperatureFahrenheit:
+      primary.temperatureFahrenheit ?? fallback?.temperatureFahrenheit,
+    windDirection: primary.windDirection ?? fallback?.windDirection,
+    windSpeedMph: primary.windSpeedMph ?? fallback?.windSpeedMph,
+  };
+}
+
+function mergeWindObservation(
+  primary?: WindObservation,
+  fallback?: WindObservation,
+): WindObservation | undefined {
+  return primary ?? fallback;
+}
+
+function getWeatherSourceName({
+  fallbackUsed,
+  nwsUsed,
+}: {
+  fallbackUsed: boolean;
+  nwsUsed: boolean;
+}): string {
+  if (nwsUsed && fallbackUsed) {
+    return "NOAA / National Weather Service + OpenWeather";
+  }
+
+  if (nwsUsed) {
+    return "NOAA / National Weather Service";
+  }
+
+  if (fallbackUsed) {
+    return "OpenWeather";
+  }
+
+  return "Weather unavailable";
 }
 
 async function fetchOptional<T>(request: () => Promise<T>): Promise<T | undefined> {

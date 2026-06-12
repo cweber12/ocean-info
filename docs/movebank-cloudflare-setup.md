@@ -28,6 +28,7 @@ VITE_MOVEBANK_RADIUS_KM=25
 ```bash
 npx wrangler secret put MOVEBANK_USERNAME
 npx wrangler secret put MOVEBANK_PASSWORD
+npx wrangler secret put OPEN_WEATHER_KEY
 ```
 
 4. Add Worker variables in `wrangler.toml`:
@@ -40,6 +41,7 @@ npx wrangler secret put MOVEBANK_PASSWORD
 5. Map route to your app domain, for example:
 
 - `https://your-domain.com/api/movebank/*`
+- `https://your-domain.com/api/weather/*`
 
 ## Endpoint contract expected by frontend
 
@@ -74,6 +76,55 @@ Response:
       "studyName": "Southern California Pelagic Movement"
     }
   ]
+}
+```
+
+### GET /api/weather/fallback
+
+Query params:
+
+- `latitude` number
+- `longitude` number
+- `date` ISO date (`YYYY-MM-DD`)
+
+Notes:
+
+- date window is limited to yesterday through five days ahead
+- this endpoint is only intended to fill NOAA/NWS weather gaps
+
+Response:
+
+```json
+{
+  "sourceName": "OpenWeather",
+  "stationName": "OpenWeather 32.88,-117.26",
+  "summary": {
+    "shortForecast": "broken clouds",
+    "temperatureFahrenheit": 70,
+    "windDirection": "NW",
+    "windSpeedMph": 11
+  },
+  "hourlyForecast": [
+    {
+      "at": "2026-06-12T10:00:00-07:00",
+      "airTemperatureFahrenheit": 70,
+      "precipitationChancePercent": 0,
+      "relativeHumidityPercent": 66,
+      "shortForecast": "broken clouds",
+      "sourceName": "OpenWeather",
+      "windDirection": "NW",
+      "windDirectionDegrees": 315,
+      "windSpeedMph": 11
+    }
+  ],
+  "windObservation": {
+    "at": "2026-06-12T10:00:00-07:00",
+    "direction": "NW",
+    "directionDegrees": 315,
+    "speedKnots": 9.56,
+    "sourceName": "OpenWeather",
+    "stationName": "OpenWeather 32.88,-117.26"
+  }
 }
 ```
 

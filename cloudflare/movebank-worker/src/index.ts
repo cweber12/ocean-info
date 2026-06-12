@@ -3,6 +3,7 @@ interface Env {
   MOVEBANK_PASSWORD: string;
   MOVEBANK_STUDY_IDS: string;
   MOVEBANK_USERNAME: string;
+  OPEN_WEATHER_KEY?: string;
   MAX_DAYS_BACK: string;
   MAX_RADIUS_KM: string;
 }
@@ -38,6 +39,44 @@ interface RequestQuery {
   radiusKm: number;
 }
 
+interface WeatherFallbackQuery {
+  date: string;
+  latitude: number;
+  longitude: number;
+}
+
+interface WeatherFallbackResponse {
+  hourlyForecast: Array<{
+    at: string;
+    airTemperatureFahrenheit?: number;
+    precipitationChancePercent?: number;
+    relativeHumidityPercent?: number;
+    shortForecast?: string;
+    sourceName: string;
+    windDirection?: string;
+    windDirectionDegrees?: number;
+    windGustMph?: number;
+    windSpeedMph?: number;
+  }>;
+  sourceName: "OpenWeather";
+  stationName: string;
+  summary?: {
+    shortForecast?: string;
+    temperatureFahrenheit?: number;
+    windDirection?: string;
+    windSpeedMph?: number;
+  };
+  windObservation?: {
+    at: string;
+    direction?: string;
+    directionDegrees?: number;
+    gustKnots?: number;
+    sourceName: string;
+    speedKnots?: number;
+    stationName: string;
+  };
+}
+
 const allowedQueryKeys = new Set([
   "centerLat",
   "centerLng",
@@ -45,6 +84,8 @@ const allowedQueryKeys = new Set([
   "daysBack",
   "radiusKm",
 ]);
+
+const weatherQueryKeys = new Set(["date", "latitude", "longitude"]);
 
 const corsHeaders = {
   "access-control-allow-headers": "content-type",
@@ -64,62 +105,224 @@ export default {
 
     const url = new URL(request.url);
 
-    if (!url.pathname.endsWith("/tracks")) {
-      return json({ error: "Not found" }, 404);
+    if (url.pathname.endsWith("/tracks")) {
+      return handleTracksRequest(url, request, env);
     }
 
-    let query: RequestQuery;
-
-    try {
-      query = parseAndValidateQuery(url, env);
-    } catch (error) {
-      return json(
-        {
-          error: error instanceof Error ? error.message : "Invalid request",
-        },
-        400,
-      );
+    if (url.pathname.endsWith("/fallback")) {
+      return handleWeatherFallbackRequest(url, env);
     }
 
-    const allowedStudyIds = parseAllowlistedStudyIds(env.MOVEBANK_STUDY_IDS);
-
-    if (allowedStudyIds.length === 0) {
-      return json(
-        {
-          error: "No allowlisted study IDs configured",
-        },
-        503,
-      );
-    }
-
-    try {
-      const tracks = await fetchTracks({
-        allowedStudyIds,
-        credentials: {
-          password: env.MOVEBANK_PASSWORD,
-          username: env.MOVEBANK_USERNAME,
-        },
-        query,
-        request,
-        upstreamBaseUrl: env.MOVEBANK_BASE_URL || "https://www.movebank.org",
-      });
-
-      const payload: TrackResponse = {
-        sourceName: "Movebank",
-        totalTracks: tracks.length,
-        tracks,
-      };
-
-      return json(payload, 200, {
-        "cache-control": "public, max-age=120, stale-while-revalidate=300",
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error("Movebank fetch failed", message);
-      return json({ error: `Movebank upstream request failed: ${message}` }, 502);
-    }
+    return json({ error: "Not found" }, 404);
   },
 };
+
+async function handleTracksRequest(
+  url: URL,
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  let query: RequestQuery;
+
+  try {
+    query = parseAndValidateQuery(url, env);
+  } catch (error) {
+    return json(
+      {
+        error: error instanceof Error ? error.message : "Invalid request",
+      },
+      400,
+    );
+  }
+
+  const allowedStudyIds = parseAllowlistedStudyIds(env.MOVEBANK_STUDY_IDS);
+
+  if (allowedStudyIds.length === 0) {
+    return json(
+      {
+        error: "No allowlisted study IDs configured",
+      },
+      503,
+    );
+  }
+
+  try {
+    const tracks = await fetchTracks({
+      allowedStudyIds,
+      credentials: {
+        password: env.MOVEBANK_PASSWORD,
+        username: env.MOVEBANK_USERNAME,
+      },
+      query,
+      request,
+      upstreamBaseUrl: env.MOVEBANK_BASE_URL || "https://www.movebank.org",
+    });
+
+    const payload: TrackResponse = {
+      sourceName: "Movebank",
+      totalTracks: tracks.length,
+      tracks,
+    };
+
+    return json(payload, 200, {
+      "cache-control": "public, max-age=120, stale-while-revalidate=300",
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Movebank fetch failed", message);
+    return json({ error: `Movebank upstream request failed: ${message}` }, 502);
+  }
+}
+
+async function handleWeatherFallbackRequest(
+  url: URL,
+  env: Env,
+): Promise<Response> {
+  if (!env.OPEN_WEATHER_KEY) {
+    return json({ error: "OPEN_WEATHER_KEY is not configured" }, 503);
+  }
+
+  let query: WeatherFallbackQuery;
+
+  try {
+    query = parseAndValidateWeatherQuery(url);
+  } catch (error) {
+    return json(
+      {
+        error: error instanceof Error ? error.message : "Invalid request",
+      },
+      400,
+    );
+  }
+
+  if (!isWithinOpenWeatherWindow(query.date)) {
+    return json(
+      {
+        error: "date must be from yesterday through 5 days ahead",
+      },
+      400,
+    );
+  }
+
+  try {
+    const fallback = await fetchOpenWeatherFallback(query, env.OPEN_WEATHER_KEY);
+    return json(fallback, 200, {
+      "cache-control": "public, max-age=300, stale-while-revalidate=600",
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("OpenWeather fetch failed", message);
+    return json({ error: `OpenWeather upstream request failed: ${message}` }, 502);
+  }
+}
+
+async function fetchOpenWeatherFallback(
+  query: WeatherFallbackQuery,
+  apiKey: string,
+): Promise<WeatherFallbackResponse> {
+  const upstreamUrl = new URL("https://api.openweathermap.org/data/3.0/onecall");
+  upstreamUrl.searchParams.set("lat", query.latitude.toFixed(4));
+  upstreamUrl.searchParams.set("lon", query.longitude.toFixed(4));
+  upstreamUrl.searchParams.set("appid", apiKey);
+  upstreamUrl.searchParams.set("units", "imperial");
+  upstreamUrl.searchParams.set("exclude", "minutely,daily,alerts");
+
+  const response = await fetch(upstreamUrl);
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Upstream status ${response.status}: ${body.slice(0, 200)}`);
+  }
+
+  const payload = (await response.json()) as {
+    hourly?: Array<{
+      dt?: number;
+      temp?: number;
+      pop?: number;
+      humidity?: number;
+      weather?: Array<{ description?: string }>;
+      wind_speed?: number;
+      wind_gust?: number;
+      wind_deg?: number;
+    }>;
+    timezone_offset?: number;
+  };
+
+  const timezoneOffsetSeconds = payload.timezone_offset ?? 0;
+  const stationName = `OpenWeather ${query.latitude.toFixed(2)},${query.longitude.toFixed(2)}`;
+  const hourlyForecast = (payload.hourly ?? [])
+    .map((hour) => toFallbackPoint(hour, timezoneOffsetSeconds))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .filter((point) => point.at.slice(0, 10) === query.date);
+
+  const summaryPoint = getSummaryPoint(hourlyForecast, query.date);
+
+  return {
+    sourceName: "OpenWeather",
+    stationName,
+    hourlyForecast,
+    summary: summaryPoint
+      ? {
+          shortForecast: summaryPoint.shortForecast,
+          temperatureFahrenheit: summaryPoint.airTemperatureFahrenheit,
+          windDirection: summaryPoint.windDirection,
+          windSpeedMph: summaryPoint.windSpeedMph,
+        }
+      : undefined,
+    windObservation: summaryPoint
+      ? {
+          at: summaryPoint.at,
+          direction: summaryPoint.windDirection,
+          directionDegrees: summaryPoint.windDirectionDegrees,
+          gustKnots:
+            summaryPoint.windGustMph !== undefined
+              ? mphToKnots(summaryPoint.windGustMph)
+              : undefined,
+          sourceName: "OpenWeather",
+          speedKnots:
+            summaryPoint.windSpeedMph !== undefined
+              ? mphToKnots(summaryPoint.windSpeedMph)
+              : undefined,
+          stationName,
+        }
+      : undefined,
+  };
+}
+
+function toFallbackPoint(
+  hour: {
+    dt?: number;
+    temp?: number;
+    pop?: number;
+    humidity?: number;
+    weather?: Array<{ description?: string }>;
+    wind_speed?: number;
+    wind_gust?: number;
+    wind_deg?: number;
+  },
+  timezoneOffsetSeconds: number,
+) {
+  if (typeof hour.dt !== "number") {
+    return undefined;
+  }
+
+  const at = toIsoWithOffset(hour.dt, timezoneOffsetSeconds);
+  const directionDegrees = asNumber(hour.wind_deg);
+
+  return {
+    at,
+    airTemperatureFahrenheit: asNumber(hour.temp),
+    precipitationChancePercent:
+      typeof hour.pop === "number" ? Math.round(hour.pop * 100) : undefined,
+    relativeHumidityPercent: asNumber(hour.humidity),
+    shortForecast: asString(hour.weather?.[0]?.description),
+    sourceName: "OpenWeather",
+    windDirection: toCardinal(directionDegrees),
+    windDirectionDegrees: directionDegrees,
+    windGustMph: asNumber(hour.wind_gust),
+    windSpeedMph: asNumber(hour.wind_speed),
+  };
+}
 
 async function fetchTracks({
   allowedStudyIds,
@@ -330,6 +533,40 @@ function parseAndValidateQuery(url: URL, env: Env): RequestQuery {
   };
 }
 
+function parseAndValidateWeatherQuery(url: URL): WeatherFallbackQuery {
+  const params = url.searchParams;
+
+  const rawSearch = url.search.replace(/^\?/, "");
+  for (const pair of rawSearch.split("&")) {
+    const key = pair.split("=")[0];
+    if (key && !weatherQueryKeys.has(decodeURIComponent(key))) {
+      throw new Error(`Unknown query parameter: ${decodeURIComponent(key)}`);
+    }
+  }
+
+  const latitude = Number(params.get("latitude"));
+  const longitude = Number(params.get("longitude"));
+  const date = params.get("date") ?? "";
+
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+    throw new Error("latitude must be a valid latitude");
+  }
+
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    throw new Error("longitude must be a valid longitude");
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error("date must be in YYYY-MM-DD format");
+  }
+
+  return {
+    date,
+    latitude,
+    longitude,
+  };
+}
+
 function parseAllowlistedStudyIds(raw: string): string[] {
   return raw
     .split(",")
@@ -360,6 +597,65 @@ function getStartDate(dateEndIso: string, daysBack: number): string {
   const dd = String(endDate.getUTCDate()).padStart(2, "0");
 
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function isWithinOpenWeatherWindow(date: string): boolean {
+  const target = new Date(`${date}T00:00:00Z`);
+  const today = new Date();
+  const base = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+
+  const min = new Date(base);
+  min.setUTCDate(min.getUTCDate() - 1);
+
+  const max = new Date(base);
+  max.setUTCDate(max.getUTCDate() + 5);
+
+  return target >= min && target <= max;
+}
+
+function toIsoWithOffset(unixSeconds: number, timezoneOffsetSeconds: number): string {
+  const utcMillis = unixSeconds * 1000;
+  const localMillis = utcMillis + timezoneOffsetSeconds * 1000;
+  const isoLocal = new Date(localMillis).toISOString().slice(0, 19);
+
+  const sign = timezoneOffsetSeconds >= 0 ? "+" : "-";
+  const abs = Math.abs(timezoneOffsetSeconds);
+  const hours = String(Math.floor(abs / 3600)).padStart(2, "0");
+  const minutes = String(Math.floor((abs % 3600) / 60)).padStart(2, "0");
+
+  return `${isoLocal}${sign}${hours}:${minutes}`;
+}
+
+function toCardinal(directionDegrees?: number): string | undefined {
+  if (directionDegrees === undefined) {
+    return undefined;
+  }
+
+  const normalized = ((directionDegrees % 360) + 360) % 360;
+  const labels = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  const index = Math.round(normalized / 45) % labels.length;
+  return labels[index];
+}
+
+function mphToKnots(speedMph: number): number {
+  return Number((speedMph * 0.868976).toFixed(2));
+}
+
+function getSummaryPoint<T extends { at: string }>(
+  points: T[],
+  date: string,
+): T | undefined {
+  if (points.length === 0) {
+    return undefined;
+  }
+
+  const now = new Date();
+
+  if (date !== now.toISOString().slice(0, 10)) {
+    return points[0];
+  }
+
+  return points.find((point) => new Date(point.at) >= now) ?? points[0];
 }
 
 function clamp(value: number, min: number, max: number): number {

@@ -52,8 +52,17 @@ Frontend environment flags:
 - `VITE_ENABLE_MOVEBANK_TRACKING=true` to show the tracking panel in dive/tidepools
 - `VITE_MOVEBANK_PROXY_BASE_URL=/api/movebank` for the Worker route base
 - `VITE_MOVEBANK_DAYS_BACK=7` and `VITE_MOVEBANK_RADIUS_KM=25` for default query windows
+- `VITE_WEATHER_PROXY_BASE_URL=/api/weather` for OpenWeather fallback proxy calls
 
 See [docs/movebank-cloudflare-setup.md](docs/movebank-cloudflare-setup.md) for Worker deployment, secrets, and route setup.
+
+## OpenWeather Fallback
+
+OpenWeather fallback is used only when NOAA/NWS weather data is unavailable or missing key fields.
+
+- Requests are proxied through the Cloudflare Worker.
+- `OPEN_WEATHER_KEY` must be stored as a Worker secret.
+- Browser code never includes private weather keys.
 
 ## Scripts
 

@@ -52,7 +52,6 @@ export function CoastalMapPanel({
         return [];
       }
 
-      const seenCoordinates = new Set<string>();
       const markers: Array<{
         id: number;
         point: NonNullable<AnimalSighting["point"]>;
@@ -63,15 +62,6 @@ export function CoastalMapPanel({
         if (!sighting.point) {
           continue;
         }
-
-        // Collapse nearly identical points to avoid dense vertical marker columns.
-        const coordinateKey = `${sighting.point.latitude.toFixed(4)}:${sighting.point.longitude.toFixed(4)}`;
-
-        if (seenCoordinates.has(coordinateKey)) {
-          continue;
-        }
-
-        seenCoordinates.add(coordinateKey);
         markers.push({
           id: sighting.id,
           point: sighting.point,
@@ -229,26 +219,39 @@ function ViewportController({
   const map = useMap();
 
   useEffect(() => {
-    if (markers.length === 0) {
-      map.setView([center.latitude, center.longitude], 11.5, { animate: false });
-      return;
-    }
+    const fitToDisplayedPins = () => {
+      map.invalidateSize({ animate: false });
 
-    if (markers.length === 1) {
-      map.setView([markers[0].point.latitude, markers[0].point.longitude], 12, {
-        animate: false,
-      });
-      return;
-    }
+      if (markers.length === 0) {
+        map.setView([center.latitude, center.longitude], 11.5, { animate: false });
+        return;
+      }
 
-    const bounds = latLngBounds(
-      markers.map((marker) => [marker.point.latitude, marker.point.longitude]),
-    );
-    map.fitBounds(bounds.pad(0.22), { animate: false });
+      if (markers.length === 1) {
+        map.setView([markers[0].point.latitude, markers[0].point.longitude], 12, {
+          animate: false,
+        });
+        return;
+      }
+
+      const bounds = latLngBounds(
+        markers.map((marker) => [marker.point.latitude, marker.point.longitude]),
+      );
+      map.fitBounds(bounds.pad(0.22), { animate: false });
+    };
+
+    fitToDisplayedPins();
+    const frame = window.requestAnimationFrame(fitToDisplayedPins);
+    return () => window.cancelAnimationFrame(frame);
   }, [center.latitude, center.longitude, markers, map]);
 
   useEffect(() => {
-    map.invalidateSize();
+    const handleResize = () => {
+      map.invalidateSize({ animate: false });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [map]);
 
   return null;

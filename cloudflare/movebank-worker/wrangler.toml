@@ -4,7 +4,8 @@ compatibility_date = "2026-01-01"
 
 [vars]
 MOVEBANK_BASE_URL = "https://www.movebank.org"
-MOVEBANK_STUDY_IDS = ""
+# Comma-separated Movebank study IDs. Replace placeholders with real IDs your account can access.
+MOVEBANK_STUDY_IDS = "1027467132"
 MAX_DAYS_BACK = "30"
 MAX_RADIUS_KM = "100"
 

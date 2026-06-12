@@ -6,6 +6,8 @@ export interface NdbcWaveObservationRequest {
 }
 
 const sourceName = "NDBC";
+const devProxyBaseUrl = "/api/ndbc";
+const ndbcBaseUrl = "https://www.ndbc.noaa.gov";
 
 export async function fetchNdbcWaveObservation({
   date,
@@ -16,7 +18,7 @@ export async function fetchNdbcWaveObservation({
   }
 
   const response = await fetch(
-    `https://www.ndbc.noaa.gov/data/realtime2/${stationId}.txt`,
+    `${getNdbcBaseUrl()}/data/realtime2/${stationId}.txt`,
   );
 
   if (!response.ok) {
@@ -82,4 +84,8 @@ function toLocalIsoDate(date: Date): string {
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
 
   return localDate.toISOString().slice(0, 10);
+}
+
+function getNdbcBaseUrl() {
+  return import.meta.env.DEV ? devProxyBaseUrl : ndbcBaseUrl;
 }

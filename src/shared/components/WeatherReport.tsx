@@ -96,7 +96,8 @@ export function MarineWeatherReport({
     );
   }
 
-  const stats = getWeatherStats(activityId, report);
+  const temperatureStats = getTemperatureStats(report);
+  const windStats = getWindStats(report);
   const waveStats = getWaveStats(report);
 
   return (
@@ -106,22 +107,57 @@ export function MarineWeatherReport({
     >
       <WeatherReportHeading content={content} />
 
-      <div className="weather-report-grid">
-        <ChartPanel className="weather-chart-panel">
-          <WindForecastChart points={report.hourlyForecast} />
-        </ChartPanel>
+      <div className="weather-report-stack">
+        <div className="weather-report-grid">
+          <ChartPanel className="weather-chart-panel temperature-chart-panel">
+            <TemperatureForecastChart
+              points={report.hourlyForecast}
+              waterTemperatureFahrenheit={report.waterTemperature?.temperatureFahrenheit}
+            />
+          </ChartPanel>
 
-        <DataPanel className="weather-data-panel">
-          <div className="weather-stat-grid">
-            {stats.map((stat) => (
-              <WeatherStatCard key={stat.label} stat={stat} />
-            ))}
-          </div>
+          <DataPanel className="weather-data-panel">
+            <div className="weather-panel-heading">
+              <p className="eyebrow">Temperature</p>
+              <h3>Air and water temperatures</h3>
+            </div>
 
-          <p className="weather-source-note">
-            {content.sourceNote} Forecast grid {report.stationNames.weather ?? "NWS"}.
-          </p>
-        </DataPanel>
+            <div className="weather-stat-grid weather-stat-grid-dual">
+              {temperatureStats.map((stat) => (
+                <WeatherStatCard key={stat.label} stat={stat} />
+              ))}
+            </div>
+
+            <p className="weather-source-note">
+              {content.sourceNote} Forecast grid {report.stationNames.weather ?? "NWS"}; water station{" "}
+              {report.stationNames.water ?? report.waterTemperature?.stationName ?? "NOAA"}.
+            </p>
+          </DataPanel>
+        </div>
+
+        <div className="weather-report-grid">
+          <ChartPanel className="weather-chart-panel wind-chart-panel">
+            <WindForecastChart points={report.hourlyForecast} />
+          </ChartPanel>
+
+          <DataPanel className="weather-data-panel">
+            <div className="weather-panel-heading">
+              <p className="eyebrow">Wind</p>
+              <h3>Wind speed and gusts</h3>
+            </div>
+
+            <div className="weather-stat-grid weather-stat-grid-dual">
+              {windStats.map((stat) => (
+                <WeatherStatCard key={stat.label} stat={stat} />
+              ))}
+            </div>
+
+            <p className="weather-source-note">
+              Forecast grid {report.stationNames.weather ?? "NWS"}; latest wind observation from{" "}
+              {report.windObservation?.sourceName ?? "NOAA"}.
+            </p>
+          </DataPanel>
+        </div>
       </div>
 
       {waveStats.length > 0 ? (
@@ -192,6 +228,8 @@ function WindForecastChart({ points }: { points: HourlyWeatherPoint[] }) {
   const height = 260;
   const padding = { bottom: 34, left: 44, right: 24, top: 18 };
   const chartPoints = points.slice(0, 24);
+  const domainStartMinute = 0;
+  const domainEndMinute = 24 * 60 - 1;
 
   if (chartPoints.length === 0) {
     return <div className="weather-chart-empty">No hourly wind chart available.</div>;
@@ -202,16 +240,14 @@ function WindForecastChart({ points }: { points: HourlyWeatherPoint[] }) {
     point.windGustMph ?? point.windSpeedMph ?? 0,
   ]);
   const maxSpeed = Math.max(...speeds, 10);
-  const startMinute = getChartMinute(chartPoints[0].at);
-  const endMinute = getChartMinute(chartPoints[chartPoints.length - 1].at);
-  const minuteRange = Math.max(endMinute - startMinute, 1);
+  const minuteRange = domainEndMinute - domainStartMinute;
   const plotBottom = height - padding.bottom;
   const plotHeight = height - padding.top - padding.bottom;
   const plotWidth = width - padding.left - padding.right;
   const coordinates = chartPoints.map((point) => {
     const x =
       padding.left +
-      ((getChartMinute(point.at) - startMinute) / minuteRange) * plotWidth;
+      ((getChartMinute(point.at) - domainStartMinute) / minuteRange) * plotWidth;
     const speedY =
       plotBottom -
       (((point.windSpeedMph ?? 0) / maxSpeed) * plotHeight);
@@ -228,9 +264,9 @@ function WindForecastChart({ points }: { points: HourlyWeatherPoint[] }) {
     label: `${Math.round(mphToKnots(speed))} kt`,
     y: plotBottom - (speed / maxSpeed) * plotHeight,
   }));
-  const xTicks = getTimeTicks(startMinute, endMinute, 6).map((minute) => ({
+  const xTicks = getTimeTicks(domainStartMinute, domainEndMinute, 6).map((minute) => ({
     label: formatChartHour(minute),
-    x: padding.left + ((minute - startMinute) / minuteRange) * plotWidth,
+    x: padding.left + ((minute - domainStartMinute) / minuteRange) * plotWidth,
   }));
 
   return (
@@ -289,6 +325,118 @@ function WindForecastChart({ points }: { points: HourlyWeatherPoint[] }) {
   );
 }
 
+function TemperatureForecastChart({
+  points,
+  waterTemperatureFahrenheit,
+}: {
+  points: HourlyWeatherPoint[];
+  waterTemperatureFahrenheit?: number;
+}) {
+  const width = 720;
+  const height = 260;
+  const padding = { bottom: 34, left: 44, right: 24, top: 18 };
+  const chartPoints = points.slice(0, 24);
+  const domainStartMinute = 0;
+  const domainEndMinute = 24 * 60 - 1;
+  const airTemperatures = chartPoints
+    .map((point) => point.airTemperatureFahrenheit)
+    .filter((value): value is number => value !== undefined);
+
+  if (chartPoints.length === 0 || (airTemperatures.length === 0 && waterTemperatureFahrenheit === undefined)) {
+    return <div className="weather-chart-empty">No hourly temperature chart available.</div>;
+  }
+
+  const values = [
+    ...airTemperatures,
+    ...(waterTemperatureFahrenheit === undefined ? [] : [waterTemperatureFahrenheit]),
+  ];
+  const minTemperature = Math.min(...values);
+  const maxTemperature = Math.max(...values);
+  const chartMin = Math.floor((minTemperature - 2) / 2) * 2;
+  const chartMax = Math.ceil((maxTemperature + 2) / 2) * 2;
+  const temperatureRange = Math.max(chartMax - chartMin, 6);
+  const minuteRange = domainEndMinute - domainStartMinute;
+  const plotBottom = height - padding.bottom;
+  const plotHeight = height - padding.top - padding.bottom;
+  const plotWidth = width - padding.left - padding.right;
+  const coordinates = chartPoints.map((point) => {
+    const x =
+      padding.left +
+      ((getChartMinute(point.at) - domainStartMinute) / minuteRange) * plotWidth;
+    const airY =
+      point.airTemperatureFahrenheit === undefined
+        ? undefined
+        : plotBottom - (((point.airTemperatureFahrenheit - chartMin) / temperatureRange) * plotHeight);
+
+    return { ...point, airY, x };
+  });
+  const airPoints = coordinates
+    .filter((point): point is typeof point & { airY: number } => point.airY !== undefined)
+    .map((point) => ({ x: point.x, y: point.airY }));
+  const airPath = buildSmoothPath(airPoints);
+  const waterY =
+    waterTemperatureFahrenheit === undefined
+      ? undefined
+      : plotBottom - (((waterTemperatureFahrenheit - chartMin) / temperatureRange) * plotHeight);
+  const yTicks = getLinearTicks(chartMin, chartMax, 3).map((temperature) => ({
+    label: `${Math.round(temperature)}°F`,
+    y: plotBottom - ((temperature - chartMin) / temperatureRange) * plotHeight,
+  }));
+  const xTicks = getTimeTicks(domainStartMinute, domainEndMinute, 6).map((minute) => ({
+    label: formatChartHour(minute),
+    x: padding.left + ((minute - domainStartMinute) / minuteRange) * plotWidth,
+  }));
+
+  return (
+    <svg
+      className="temperature-chart"
+      role="img"
+      aria-label="Hourly air and water temperature chart"
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+    >
+      {yTicks.map((tick) => (
+        <g className="temperature-chart-y-tick" key={tick.label}>
+          <line
+            x1={padding.left}
+            x2={width - padding.right}
+            y1={tick.y}
+            y2={tick.y}
+          />
+          <text x={padding.left - 10} y={tick.y + 4} textAnchor="end">
+            {tick.label}
+          </text>
+        </g>
+      ))}
+      {waterY === undefined ? null : (
+        <line
+          className="temperature-chart-water-line"
+          x1={padding.left}
+          x2={width - padding.right}
+          y1={waterY}
+          y2={waterY}
+        />
+      )}
+      {airPath ? <path className="temperature-chart-air-line" d={airPath} /> : null}
+      <line
+        className="temperature-chart-axis"
+        x1={padding.left}
+        x2={width - padding.right}
+        y1={plotBottom}
+        y2={plotBottom}
+      />
+      {xTicks.map((tick) => (
+        <g className="temperature-chart-x-tick" key={tick.label}>
+          <line x1={tick.x} x2={tick.x} y1={plotBottom} y2={plotBottom + 5} />
+          <text x={tick.x} y={height - 8} textAnchor="middle">
+            {tick.label}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 function getActivityWeatherContent(activityId: ActivityId) {
   const contentByActivity: Record<
     ActivityId,
@@ -329,60 +477,28 @@ function getActivityWeatherContent(activityId: ActivityId) {
   return contentByActivity[activityId];
 }
 
-function getWeatherStats(
-  activityId: ActivityId,
-  report: MarineWeatherReportData,
-): WeatherStat[] {
-  const statsByActivity: Record<ActivityId, WeatherStat[]> = {
-    "beach-day": [
-      getSkyStat(report),
-      getWindStat(report),
-      getWaterTemperatureStat(report),
-      getGustStat(report),
-    ],
-    dive: [
-      getWaterTemperatureStat(report),
-      getWindStat(report),
-      getSkyStat(report),
-      getGustStat(report),
-    ],
-    sail: [
-      getWindStat(report),
-      getGustStat(report),
-      getSkyStat(report),
-      getWaterTemperatureStat(report),
-    ],
-    "sup-kayak": [
-      getWindStat(report),
-      getSkyStat(report),
-      getWaterTemperatureStat(report),
-      getGustStat(report),
-    ],
-    surf: [
-      getWindStat(report),
-      getWaterTemperatureStat(report),
-      getSkyStat(report),
-      getGustStat(report),
-    ],
-    tidepools: [
-      getSkyStat(report),
-      getWindStat(report),
-      getWaterTemperatureStat(report),
-      getGustStat(report),
-    ],
-  };
-
-  return statsByActivity[activityId];
+function getTemperatureStats(report: MarineWeatherReportData): WeatherStat[] {
+  return [getAirTemperatureStat(report), getWaterTemperatureStat(report)];
 }
 
-function getSkyStat(report: MarineWeatherReportData): WeatherStat {
-  const summary = report.summary;
+function getWindStats(report: MarineWeatherReportData): WeatherStat[] {
+  return [getWindStat(report), getGustStat(report)];
+}
+
+function getAirTemperatureStat(report: MarineWeatherReportData): WeatherStat {
+  const forecastPoint = report.hourlyForecast.find(
+    (point) => point.airTemperatureFahrenheit !== undefined,
+  );
 
   return {
-    detail: summary?.shortForecast ?? "Forecast unavailable",
+    detail: forecastPoint
+      ? `Forecast at ${formatObservationTime(forecastPoint.at)}`
+      : report.summary?.shortForecast ?? "Forecast unavailable",
     icon: CloudSun,
-    label: "Sky",
-    value: formatTemperature(summary?.temperatureFahrenheit),
+    label: "Air",
+    value: formatTemperature(
+      forecastPoint?.airTemperatureFahrenheit ?? report.summary?.temperatureFahrenheit,
+    ),
   };
 }
 
@@ -525,6 +641,10 @@ function getTimeTicks(
     ticks.push(minute);
   }
 
+  if (ticks[ticks.length - 1] !== endMinute) {
+    ticks.push(endMinute);
+  }
+
   return ticks;
 }
 
@@ -532,7 +652,21 @@ function getSpeedTicks(maxSpeed: number): number[] {
   return [maxSpeed, maxSpeed * 0.66, maxSpeed * 0.33, 0];
 }
 
+function getLinearTicks(minimum: number, maximum: number, segments: number): number[] {
+  if (segments <= 0 || maximum <= minimum) {
+    return [minimum];
+  }
+
+  const step = (maximum - minimum) / segments;
+
+  return Array.from({ length: segments + 1 }, (_, index) => maximum - step * index);
+}
+
 function formatChartHour(minuteOfDay: number): string {
+  if (minuteOfDay >= 24 * 60 - 1) {
+    return "11:59p";
+  }
+
   const hour = Math.floor(minuteOfDay / 60);
 
   if (hour === 0) {

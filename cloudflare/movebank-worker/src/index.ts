@@ -114,8 +114,9 @@ export default {
         "cache-control": "public, max-age=120, stale-while-revalidate=300",
       });
     } catch (error) {
-      console.error("Movebank fetch failed", error);
-      return json({ error: "Movebank upstream request failed" }, 502);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Movebank fetch failed", message);
+      return json({ error: `Movebank upstream request failed: ${message}` }, 502);
     }
   },
 };
@@ -139,15 +140,14 @@ async function fetchTracks({
   const tracks: MovebankTrack[] = [];
 
   for (const studyId of allowedStudyIds) {
+    // Movebank direct-read returns CSV; bbox filtering is not supported for events
+    // so we fetch the date-windowed events and filter to bbox in the Worker.
     const upstreamUrl = new URL("/movebank/service/direct-read", upstreamBaseUrl);
     upstreamUrl.searchParams.set("entity_type", "event");
     upstreamUrl.searchParams.set("study_id", studyId);
-    upstreamUrl.searchParams.set("attributes", "individual-local-identifier,timestamp,location-lat,location-long,taxon-canonical-name");
-    upstreamUrl.searchParams.set("format", "json");
-    upstreamUrl.searchParams.set("visible", "true");
-    upstreamUrl.searchParams.set("timestamp_start", `${startDate} 00:00:00`);
-    upstreamUrl.searchParams.set("timestamp_end", `${query.dateEnd} 23:59:59`);
-    upstreamUrl.searchParams.set("bbox", bbox);
+    upstreamUrl.searchParams.set("attributes", "individual_local_identifier,timestamp,location_lat,location_long,taxon_canonical_name");
+    upstreamUrl.searchParams.set("timestamp_start", `${startDate} 00:00:00.000`);
+    upstreamUrl.searchParams.set("timestamp_end", `${query.dateEnd} 23:59:59.000`);
 
     const response = await fetch(upstreamUrl, {
       headers: {
@@ -157,11 +157,14 @@ async function fetchTracks({
     });
 
     if (!response.ok) {
-      throw new Error(`Upstream status ${response.status}`);
+      const body = await response.text();
+      throw new Error(`Upstream status ${response.status}: ${body.slice(0, 200)}`);
     }
 
-    const payload = (await response.json()) as MovebankEvent[];
-    const normalizedTracks = normalizeEventsToTracks(payload, studyId);
+    const csv = await response.text();
+    const events = parseCsvEvents(csv);
+    const bboxed = filterByBbox(events, bbox);
+    const normalizedTracks = normalizeEventsToTracks(bboxed, studyId);
     tracks.push(...normalizedTracks);
   }
 
@@ -174,31 +177,84 @@ async function fetchTracks({
     .slice(0, 200);
 }
 
-type MovebankEvent = {
-  [key: string]: unknown;
-};
+type MovebankEvent = Record<string, string>;
+
+function parseCsvEvents(csv: string): MovebankEvent[] {
+  const lines = csv.split(/\r?\n/).filter(Boolean);
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
+  const events: MovebankEvent[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const values = splitCsvLine(lines[i]);
+    if (values.length !== headers.length) continue;
+    const row: MovebankEvent = {};
+    for (let j = 0; j < headers.length; j++) {
+      row[headers[j]] = values[j].replace(/^"|"$/g, "").trim();
+    }
+    events.push(row);
+  }
+
+  return events;
+}
+
+function splitCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (const char of line) {
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current);
+  return result;
+}
+
+function filterByBbox(events: MovebankEvent[], bbox: ReturnType<typeof parseBbox>): MovebankEvent[] {
+  return events.filter((event) => {
+    const lat = Number(event["location_lat"] ?? event["location-lat"]);
+    const lng = Number(event["location_long"] ?? event["location-long"]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+    return lat >= bbox.minLat && lat <= bbox.maxLat && lng >= bbox.minLng && lng <= bbox.maxLng;
+  });
+}
 
 function normalizeEventsToTracks(events: MovebankEvent[], studyId: string): MovebankTrack[] {
   const byIndividual = new Map<string, MovebankTrack>();
 
   for (const event of events) {
-    const individualId = asString(event["individual-local-identifier"]);
-    const timestamp = asString(event.timestamp);
-    const latitude = asNumber(event["location-lat"]);
-    const longitude = asNumber(event["location-long"]);
+    // Movebank CSV uses underscores in attribute names
+    const individualId =
+      event["individual_local_identifier"] ??
+      event["individual-local-identifier"] ??
+      "";
+    const timestamp = event["timestamp"] ?? "";
+    const latitude = asNumber(event["location_lat"] ?? event["location-lat"]);
+    const longitude = asNumber(event["location_long"] ?? event["location-long"]);
+    const species =
+      event["taxon_canonical_name"] ??
+      event["taxon-canonical-name"] ??
+      undefined;
 
-    if (!individualId || !timestamp) {
-      continue;
-    }
+    if (!individualId || !timestamp) continue;
 
     const trackId = `${studyId}:${individualId}`;
-    const current = byIndividual.get(trackId) ?? {
+    const existing = byIndividual.get(trackId);
+    const current: MovebankTrack = existing ?? {
       id: trackId,
       individualId,
       individualName: individualId,
       pointCount: 0,
-      sourceName: "Movebank",
-      speciesName: asString(event["taxon-canonical-name"]),
+      speciesName: species || undefined,
       studyId,
     };
 
@@ -210,10 +266,7 @@ function normalizeEventsToTracks(events: MovebankEvent[], studyId: string): Move
       (!current.latestPoint || timestamp > current.latestPoint.timestamp)
     ) {
       current.latestPoint = {
-        point: {
-          latitude,
-          longitude,
-        },
+        point: { latitude, longitude },
         timestamp,
       };
     }
@@ -227,9 +280,14 @@ function normalizeEventsToTracks(events: MovebankEvent[], studyId: string): Move
 function parseAndValidateQuery(url: URL, env: Env): RequestQuery {
   const params = url.searchParams;
 
-  for (const key of params.keys()) {
-    if (!allowedQueryKeys.has(key)) {
-      throw new Error(`Unknown query parameter: ${key}`);
+  // Validate that no unexpected parameters are present.
+  // URLSearchParams.keys() is not iterable in the Workers type lib so we
+  // build a string from the raw query and check against the allowlist.
+  const rawSearch = url.search.replace(/^\?/, "");
+  for (const pair of rawSearch.split("&")) {
+    const key = pair.split("=")[0];
+    if (key && !allowedQueryKeys.has(decodeURIComponent(key))) {
+      throw new Error(`Unknown query parameter: ${decodeURIComponent(key)}`);
     }
   }
 
@@ -279,17 +337,19 @@ function parseAllowlistedStudyIds(raw: string): string[] {
     .filter(Boolean);
 }
 
-function makeBbox(centerLat: number, centerLng: number, radiusKm: number): string {
+function makeBbox(centerLat: number, centerLng: number, radiusKm: number) {
   const latDelta = radiusKm / 111;
   const lngDelta = radiusKm / (111 * Math.max(Math.cos((centerLat * Math.PI) / 180), 0.2));
 
-  const minLat = clamp(centerLat - latDelta, -90, 90);
-  const maxLat = clamp(centerLat + latDelta, -90, 90);
-  const minLng = clamp(centerLng - lngDelta, -180, 180);
-  const maxLng = clamp(centerLng + lngDelta, -180, 180);
-
-  return `${minLng},${minLat},${maxLng},${maxLat}`;
+  return {
+    minLat: clamp(centerLat - latDelta, -90, 90),
+    maxLat: clamp(centerLat + latDelta, -90, 90),
+    minLng: clamp(centerLng - lngDelta, -180, 180),
+    maxLng: clamp(centerLng + lngDelta, -180, 180),
+  };
 }
+
+const parseBbox = makeBbox;
 
 function getStartDate(dateEndIso: string, daysBack: number): string {
   const endDate = new Date(`${dateEndIso}T00:00:00Z`);

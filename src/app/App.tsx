@@ -416,11 +416,12 @@ export function App() {
               className="header-planner"
               aria-label="Plan by location and date"
             >
+              
+              <div className="control-strip-heading">
+                <p className="eyebrow">Plan by</p>
+                <h2>Location and date</h2>
+              </div>
               <div className="control-strip">
-                <div className="control-strip-heading">
-                  <p className="eyebrow">Plan by</p>
-                  <h2>Location and date</h2>
-                </div>
                 <div>
                   <label htmlFor="location-select">
                     <span>Location</span>
@@ -459,23 +460,18 @@ export function App() {
                   </label>
                 </div>
               </div>
-            </section>
-          </div>
-        </div>
-      </header>
 
-      <section className="ocean-stage">
-        <div className="shell">
-          <section className="planner-layout" aria-label="Ocean planner">
-            <section className="planner-board" aria-label="Activity details">
-              <section className="activity-tabs" aria-labelledby="activity-heading">
+              <section
+                className="activity-tabs activity-tabs--header"
+                aria-labelledby="activity-heading"
+              >
                 <div className="activity-tabs-heading">
-                <p className="eyebrow">Activities</p>
-                <h2 id="activity-heading">Choose activity</h2>
+                  <p className="eyebrow">Activities</p>
+                  <h2 id="activity-heading">Choose activity</h2>
                 </div>
 
                 <p className="sr-only" id="activity-selector-help">
-                Choose one ocean activity. Arrow keys move between activities.
+                  Choose one ocean activity. Arrow keys move between activities.
                 </p>
 
                 <div
@@ -503,7 +499,15 @@ export function App() {
                   ))}
                 </div>
               </section>
+            </section>
+          </div>
+        </div>
+      </header>
 
+      <section className="ocean-stage">
+        <div className="shell">
+          <section className="planner-layout" aria-label="Ocean planner">
+            <section className="planner-board" aria-label="Activity details">
               <div className="planner-hero-row">
                 <section
                   className="recommendation-panel recommendation-panel--compact"

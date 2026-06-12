@@ -8,7 +8,10 @@ export async function getJson<T>(
   const response = await fetch(url, init);
 
   if (!response.ok) {
-    throw new Error(`Request failed with ${response.status}: ${url}`);
+    const errorBody = await response.text();
+    const details = errorBody.trim();
+    const suffix = details ? ` - ${details}` : "";
+    throw new Error(`Request failed with ${response.status}: ${url}${suffix}`);
   }
 
   return schema.parse(await response.json());

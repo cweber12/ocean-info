@@ -1188,224 +1188,228 @@ input:focus-visible {
   color: var(--color-text-primary);
 }
 
-.api-card-grid {
-  display: grid;
-  gap: var(--space-4);
-  align-items: stretch;
-}
 
-.api-data-card,
-.tide-loading,
-.tide-error,
-.weather-loading,
-.weather-error {
-  display: grid;
-  grid-template-areas:
-    "header"
-    "chart"
-    "content";
-  gap: var(--space-4);
-  min-height: 32rem;
-  color: var(--color-text-primary);
-  background: var(--color-surface-glass-strong);
-  border: 1px solid var(--color-border-glass-panel);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-md);
-  backdrop-filter: blur(12px);
-}
+  .api-card-grid {
+    display: grid;
+    gap: var(--space-4);
+    align-items: stretch;
+  }
 
-.api-data-card {
-  padding: var(--space-5);
-}
+  .api-data-card,
+  .tide-loading,
+  .tide-error,
+  .weather-loading,
+  .weather-error {
+    display: grid;
+    grid-template-areas:
+      "header"
+      "chart"
+      "content";
+    gap: var(--space-3);
+    color: var(--color-text-primary);
+    background: var(--color-surface-glass-strong);
+    border: 1px solid var(--color-border-glass-panel);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(12px);
+  }
 
-.api-data-card-header {
-  grid-area: header;
-  display: grid;
-  gap: var(--space-3);
-  align-items: end;
-  grid-template-columns: minmax(0, 1fr) auto;
-}
+  .api-data-card {
+    padding: var(--space-5);
+  }
 
-.api-data-card-header .eyebrow {
-  margin-bottom: var(--space-2);
-}
+  .api-data-card-header {
+    grid-area: header;
+    display: grid;
+    gap: var(--space-3);
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
 
-.api-data-card-header h3 {
-  margin-bottom: 0;
-  color: var(--color-text-primary);
-  font-size: var(--font-size-lg);
-}
+  .api-data-card-header .eyebrow {
+    margin-bottom: var(--space-2);
+  }
 
-.api-data-card-header span {
-  width: fit-content;
-  min-height: 2.1rem;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 var(--space-4);
-  color: color-mix(in srgb, var(--color-chart-orange-deep) 86%, var(--color-text-primary));
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-wide);
-  text-transform: uppercase;
-  background: color-mix(in srgb, var(--color-chart-orange-soft) 56%, var(--color-surface-glass-pill));
-  border: 1px solid color-mix(in srgb, var(--color-chart-orange) 42%, var(--color-border-glass-pill));
-  border-radius: var(--border-radius-full);
-}
+  .api-data-card-header h3 {
+    margin-bottom: 0;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-md);
+  }
 
-.api-data-card-chart {
-  grid-area: chart;
-  min-height: 14rem;
-  padding: var(--space-3);
-  overflow: hidden;
-  background: color-mix(in srgb, var(--color-bg-secondary) 90%, var(--color-surface-glass-card));
-  border: 1px solid var(--color-border-secondary);
-  border-radius: var(--border-radius-sm);
-}
+  .api-data-card-header span {
+    width: fit-content;
+    min-height: 2.1rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--space-4);
+    color: color-mix(in srgb, var(--color-chart-orange-deep) 86%, var(--color-text-primary));
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    background: color-mix(in srgb, var(--color-chart-orange-soft) 56%, var(--color-surface-glass-pill));
+    border: 1px solid color-mix(in srgb, var(--color-chart-orange) 42%, var(--color-border-glass-pill));
+    border-radius: var(--border-radius-full);
+  }
 
-.api-data-card-content {
-  grid-area: content;
-  display: grid;
-  gap: var(--space-4);
-}
+  .api-data-card-chart {
+    grid-area: chart;
+    min-height: 14rem;
+    padding: var(--space-2);
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-bg-secondary) 90%, var(--color-surface-glass-card));
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-sm);
+  }
 
-.tide-stat-grid {
-  display: grid;
-  gap: var(--space-3);
-}
+  .api-data-card-content {
+    grid-area: content;
+    display: grid;
+    gap: var(--space-3);
+  }
 
-.weather-stat-grid {
-  display: grid;
-  gap: var(--space-3);
-}
+  .tide-stat-grid {
+    display: grid;
+    row-gap: 0;
+    column-gap: var(--space-5);
+    border-top: 1px solid var(--color-border-secondary);
+  }
 
-.tide-stat {
-  display: grid;
-  gap: var(--space-2);
-  min-height: 5.75rem;
-  padding: var(--space-3);
-  background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-secondary);
-  border-radius: var(--border-radius-sm);
-}
+  .weather-stat-grid {
+    display: grid;
+    row-gap: 0;
+    column-gap: var(--space-5);
+    border-top: 1px solid var(--color-border-secondary);
+  }
 
-.weather-stat {
-  display: grid;
-  gap: var(--space-2);
-  min-height: 7.2rem;
-  padding: var(--space-4);
-  background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-secondary);
-  border-radius: var(--border-radius-sm);
-}
+  .tide-stat {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--space-5);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
 
-.tide-report[data-variant="feature"] .tide-stat {
-  min-height: 6.75rem;
-  padding: var(--space-4);
-}
+  .weather-stat {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--space-5);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
 
-.tide-stat span,
-.weather-stat span,
-.tide-events-heading span,
-.tide-source-note,
-.weather-source-note {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-wide);
-  text-transform: uppercase;
-}
+  .tide-stat span {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+  }
 
-.weather-stat span {
-  display: inline-flex;
-  gap: var(--space-2);
-  align-items: center;
-}
+  .weather-stat span {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+  }
 
-.weather-stat span svg {
-  color: var(--color-chart-orange);
-}
+  .tide-events-heading span {
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+  }
 
-.tide-stat strong {
-  color: var(--color-text-primary);
-  font-size: var(--font-size-lg);
-  line-height: var(--line-height-tight);
-}
+  .weather-stat span svg {
+    flex: 0 0 auto;
+    color: var(--color-chart-orange);
+  }
 
-.weather-stat strong {
-  color: var(--color-text-primary);
-  font-size: clamp(var(--font-size-xl), 2.8vw, var(--font-size-2xl));
-  line-height: var(--line-height-tight);
-  font-variant-numeric: tabular-nums;
-}
+  .tide-stat strong,
+  .weather-stat strong {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-tight);
+    font-variant-numeric: tabular-nums;
+  }
 
-.tide-report[data-variant="feature"] .tide-stat strong {
-  font-size: var(--font-size-xl);
-}
+  .tide-stat small,
+  .weather-stat small {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: right;
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-normal);
+  }
 
-.tide-stat small,
-.weather-stat small,
-.tide-events-heading small {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-normal);
-}
+  .tide-events-heading small {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+  }
 
-.tide-events {
-  display: grid;
-  gap: var(--space-3);
-}
+  .tide-events {
+    display: grid;
+    gap: var(--space-3);
+  }
 
-.tide-events-heading {
-  display: flex;
-  gap: var(--space-3);
-  align-items: baseline;
-  justify-content: space-between;
-}
+  .tide-events-heading {
+    display: flex;
+    gap: var(--space-3);
+    align-items: baseline;
+    justify-content: space-between;
+  }
 
-.tide-events ol {
-  display: grid;
-  gap: var(--space-2);
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
+  .tide-events ol {
+    display: grid;
+    gap: var(--space-2);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
 
-.tide-events li {
-  display: grid;
-  grid-template-columns: minmax(4.75rem, auto) minmax(0, 1fr) auto;
-  gap: var(--space-2);
-  align-items: center;
-  min-height: 2.35rem;
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-text-secondary);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-secondary);
-  border-radius: var(--border-radius-sm);
-}
+  .tide-events li {
+    display: grid;
+    grid-template-columns: minmax(4.75rem, auto) minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    align-items: center;
+    min-height: 2.35rem;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text-secondary);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-sm);
+  }
 
-.tide-report[data-variant="feature"] .tide-events li {
-  grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr) auto;
-  gap: var(--space-3);
-  min-height: 2.75rem;
-  padding: var(--space-3) var(--space-4);
-}
+  .tide-report[data-variant="feature"] .tide-events li {
+    grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    min-height: 2.75rem;
+    padding: var(--space-3) var(--space-4);
+  }
 
-.tide-events li strong {
-  color: var(--color-text-primary);
-}
+  .tide-events li strong {
+    color: var(--color-text-primary);
+  }
 
-.tide-source-note {
-  margin: 0;
-  line-height: var(--line-height-relaxed);
-  text-transform: none;
-}
-
-.weather-source-note {
-  margin: 0;
-  line-height: var(--line-height-relaxed);
-  text-transform: none;
-}
-
+  .tide-source-note,
+  .weather-source-note {
+    margin: 0;
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-relaxed);
+  }
 .tide-loading,
 .tide-error,
 .weather-loading,

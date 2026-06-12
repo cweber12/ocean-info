@@ -388,6 +388,11 @@ input:focus-visible {
   grid-column: 1 / -1;
 }
 
+.data-module-tide,
+.data-module-weather {
+  grid-column: 1 / -1;
+}
+
 .recommendation-panel,
 .condition-card,
 .notice-card,
@@ -1183,31 +1188,24 @@ input:focus-visible {
   color: var(--color-text-primary);
 }
 
-.tide-report-heading {
-  margin-bottom: 0;
-}
-
-.tide-report-grid {
+.api-card-grid {
   display: grid;
   gap: var(--space-4);
   align-items: stretch;
 }
 
-.weather-report-grid {
-  display: grid;
-  gap: var(--space-4);
-  align-items: stretch;
-}
-
-.weather-report-stack {
-  display: grid;
-  gap: var(--space-4);
-}
-
-.chart-panel,
-.data-panel,
+.api-data-card,
 .tide-loading,
-.tide-error {
+.tide-error,
+.weather-loading,
+.weather-error {
+  display: grid;
+  grid-template-areas:
+    "header"
+    "chart"
+    "content";
+  gap: var(--space-4);
+  min-height: 32rem;
   color: var(--color-text-primary);
   background: var(--color-surface-glass-strong);
   border: 1px solid var(--color-border-glass-panel);
@@ -1216,90 +1214,58 @@ input:focus-visible {
   backdrop-filter: blur(12px);
 }
 
-.chart-panel {
-  min-height: 11rem;
-  padding: var(--space-3);
-  overflow: hidden;
+.api-data-card {
+  padding: var(--space-5);
 }
 
-.tide-report[data-variant="feature"] .chart-panel {
-  min-height: 18rem;
-  padding: var(--space-4);
-}
-
-.weather-chart-panel {
-  min-height: 17rem;
-  padding: var(--space-4);
-}
-
-.temperature-chart-panel,
-.wind-chart-panel {
-  min-height: 17rem;
-}
-
-.data-panel {
+.api-data-card-header {
+  grid-area: header;
   display: grid;
-  gap: var(--space-3);
-  padding: var(--space-4);
-}
-
-.tide-report[data-variant="feature"] .data-panel {
-  gap: var(--space-4);
-  padding: var(--space-5);
-}
-
-.weather-data-panel {
-  gap: var(--space-4);
-  padding: var(--space-5);
-}
-
-.weather-panel-heading {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.weather-panel-heading .eyebrow {
-  margin-bottom: 0;
-}
-
-.weather-panel-heading h3 {
-  margin-bottom: 0;
-  color: var(--color-text-primary);
-}
-
-.wave-data-panel {
-  gap: var(--space-4);
-  padding: var(--space-5);
-}
-
-.wave-observation-heading {
-  display: flex;
-  flex-wrap: wrap;
   gap: var(--space-3);
   align-items: end;
-  justify-content: space-between;
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
-.wave-observation-heading .eyebrow {
+.api-data-card-header .eyebrow {
   margin-bottom: var(--space-2);
 }
 
-.wave-observation-heading h3 {
+.api-data-card-header h3 {
   margin-bottom: 0;
   color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
 }
 
-.wave-observation-heading span {
-  min-height: 2.25rem;
+.api-data-card-header span {
+  width: fit-content;
+  min-height: 2.1rem;
   display: inline-flex;
   align-items: center;
   padding: 0 var(--space-4);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  color: color-mix(in srgb, var(--color-chart-orange-deep) 86%, var(--color-text-primary));
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
-  background: var(--color-surface-glass-pill);
-  border: 1px solid var(--color-border-glass-pill);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--color-chart-orange-soft) 56%, var(--color-surface-glass-pill));
+  border: 1px solid color-mix(in srgb, var(--color-chart-orange) 42%, var(--color-border-glass-pill));
   border-radius: var(--border-radius-full);
+}
+
+.api-data-card-chart {
+  grid-area: chart;
+  min-height: 14rem;
+  padding: var(--space-3);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--color-bg-secondary) 90%, var(--color-surface-glass-card));
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
+.api-data-card-content {
+  grid-area: content;
+  display: grid;
+  gap: var(--space-4);
 }
 
 .tide-stat-grid {
@@ -1325,7 +1291,7 @@ input:focus-visible {
 .weather-stat {
   display: grid;
   gap: var(--space-2);
-  min-height: 6.75rem;
+  min-height: 7.2rem;
   padding: var(--space-4);
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-secondary);
@@ -1356,7 +1322,7 @@ input:focus-visible {
 }
 
 .weather-stat span svg {
-  color: var(--color-accent-primary);
+  color: var(--color-chart-orange);
 }
 
 .tide-stat strong {
@@ -1367,8 +1333,9 @@ input:focus-visible {
 
 .weather-stat strong {
   color: var(--color-text-primary);
-  font-size: var(--font-size-xl);
+  font-size: clamp(var(--font-size-xl), 2.8vw, var(--font-size-2xl));
   line-height: var(--line-height-tight);
+  font-variant-numeric: tabular-nums;
 }
 
 .tide-report[data-variant="feature"] .tide-stat strong {
@@ -1454,62 +1421,69 @@ input:focus-visible {
 .tide-chart {
   display: block;
   width: 100%;
-  height: 11rem;
+  height: 15rem;
   overflow: visible;
 }
 
 .wind-chart {
   display: block;
   width: 100%;
-  height: 17rem;
+  height: 15rem;
   overflow: visible;
 }
 
 .temperature-chart {
   display: block;
   width: 100%;
-  height: 17rem;
+  height: 15rem;
+  overflow: visible;
+}
+
+.wave-chart {
+  display: block;
+  width: 100%;
+  height: 15rem;
   overflow: visible;
 }
 
 .tide-report[data-variant="feature"] .tide-chart {
-  height: 18rem;
+  height: 15rem;
 }
 
 .tide-chart-area {
-  opacity: 0.86;
+  opacity: 0.32;
 }
 
 .wind-chart-area {
-  opacity: 0.78;
+  opacity: 0.28;
 }
 
 .tide-chart-gradient-top {
-  stop-color: color-mix(in srgb, var(--color-accent-primary) 30%, var(--color-bg-secondary));
-  stop-opacity: 0.72;
+  stop-color: color-mix(in srgb, var(--color-chart-orange) 50%, var(--color-bg-secondary));
+  stop-opacity: 0.58;
 }
 
 .tide-chart-gradient-bottom {
   stop-color: var(--color-surface-glass-strong);
-  stop-opacity: 0.16;
+  stop-opacity: 0.08;
 }
 
 .wind-chart-gradient-top {
-  stop-color: color-mix(in srgb, var(--color-accent-moon) 42%, var(--color-bg-secondary));
-  stop-opacity: 0.62;
+  stop-color: color-mix(in srgb, var(--color-chart-orange) 48%, var(--color-bg-secondary));
+  stop-opacity: 0.48;
 }
 
 .wind-chart-gradient-bottom {
   stop-color: var(--color-surface-glass-strong);
-  stop-opacity: 0.12;
+  stop-opacity: 0.08;
 }
 
 .tide-chart-line {
   fill: none;
-  stroke: var(--color-accent-primary);
+  stroke: var(--color-chart-orange);
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 4;
+  stroke-width: 3.5;
 }
 
 .wind-chart-speed-line,
@@ -1520,13 +1494,13 @@ input:focus-visible {
 }
 
 .wind-chart-speed-line {
-  stroke: var(--color-accent-primary);
-  stroke-width: 4;
+  stroke: var(--color-chart-orange);
+  stroke-width: 3.5;
 }
 
 .wind-chart-gust-line {
-  stroke: var(--color-accent-secondary);
-  stroke-dasharray: 8 8;
+  stroke: var(--color-chart-orange-deep);
+  opacity: 0.62;
   stroke-width: 3;
 }
 
@@ -1538,13 +1512,13 @@ input:focus-visible {
 }
 
 .temperature-chart-air-line {
-  stroke: var(--color-accent-primary);
-  stroke-width: 4;
+  stroke: var(--color-chart-orange);
+  stroke-width: 3.5;
 }
 
 .temperature-chart-water-line {
-  stroke: var(--color-accent-secondary);
-  stroke-dasharray: 8 8;
+  stroke: var(--color-chart-orange-deep);
+  opacity: 0.62;
   stroke-width: 3;
 }
 
@@ -1563,30 +1537,37 @@ input:focus-visible {
   stroke-width: 1;
 }
 
+.wave-chart-axis {
+  stroke: var(--color-border-primary);
+  stroke-width: 1;
+}
+
 .tide-chart-x-tick line,
 .tide-chart-y-tick line,
 .wind-chart-x-tick line,
 .wind-chart-y-tick line,
 .temperature-chart-x-tick line,
-.temperature-chart-y-tick line {
+.temperature-chart-y-tick line,
+.wave-chart-y-tick line {
   stroke: color-mix(in srgb, var(--color-border-primary) 72%, transparent);
   stroke-width: 1;
 }
 
 .tide-chart-y-tick line,
 .wind-chart-y-tick line,
-.temperature-chart-y-tick line {
+.temperature-chart-y-tick line,
+.wave-chart-y-tick line {
   stroke-dasharray: 4 8;
 }
 
 .tide-chart-event circle {
   fill: var(--color-bg-secondary);
-  stroke: var(--color-accent-primary);
+  stroke: var(--color-chart-orange);
   stroke-width: 3;
 }
 
 .tide-chart-event[data-type="low"] circle {
-  stroke: var(--color-accent-secondary);
+  stroke: var(--color-chart-orange-deep);
 }
 
 .tide-chart text {
@@ -1606,8 +1587,35 @@ input:focus-visible {
 .temperature-chart text {
   fill: var(--color-text-tertiary);
   font-family: var(--font-family-body);
-  font-size: 0.75rem;
+  font-size: 0.84rem;
   font-weight: var(--font-weight-bold);
+}
+
+.wave-chart text {
+  fill: var(--color-text-tertiary);
+  font-family: var(--font-family-body);
+  font-size: 0.84rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.tide-chart text,
+.wind-chart text {
+  font-size: 0.84rem;
+}
+
+.tide-chart-axis-label,
+.wind-chart-axis-label,
+.temperature-chart-axis-label,
+.wave-chart-axis-label {
+  fill: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.01em;
+}
+
+.wave-chart-bar-fill {
+  fill: color-mix(in srgb, var(--color-chart-orange) 86%, var(--color-bg-secondary));
+  opacity: 0.78;
 }
 
 .tide-report[data-variant="compact"] .tide-chart text {
@@ -1615,7 +1623,7 @@ input:focus-visible {
 }
 
 .tide-chart-empty {
-  min-height: 12rem;
+  min-height: 13rem;
   display: grid;
   place-items: center;
   color: var(--color-text-secondary);
@@ -1813,18 +1821,6 @@ input:focus-visible {
     align-items: start;
   }
 
-  .tide-report-grid {
-    grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.8fr);
-  }
-
-  .weather-report-grid {
-    grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.9fr);
-  }
-
-  .tide-report[data-variant="compact"] .tide-report-grid {
-    grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.8fr);
-  }
-
   .tide-stat-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1847,6 +1843,35 @@ input:focus-visible {
 
   .section-heading {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@media (min-width: 768px) {
+  .api-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+  }
+
+  .tide-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tide-card-grid > .api-data-card {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 900px) {
+  .api-data-card {
+    grid-template-columns: minmax(15rem, 0.92fr) minmax(0, 1.08fr);
+    grid-template-areas:
+      "header chart"
+      "content chart";
+    align-items: stretch;
+  }
+
+  .api-data-card-chart {
+    min-height: 100%;
   }
 }
 
@@ -1881,10 +1906,6 @@ input:focus-visible {
 
   .condition-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .tide-report[data-variant="compact"] .tide-report-grid {
-    grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 0.8fr);
   }
 }
 

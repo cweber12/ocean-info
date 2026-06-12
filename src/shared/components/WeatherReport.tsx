@@ -11,7 +11,6 @@ import type {
   HourlyWeatherPoint,
   MarineWeatherReport as MarineWeatherReportData,
 } from "../../domain/weather/types";
-import { ChartPanel, DataPanel } from "./DataDisplayPanels";
 
 export interface HeaderWeatherSummaryProps {
   isLoading: boolean;
@@ -79,7 +78,9 @@ export function MarineWeatherReport({
   if (isLoading) {
     return (
       <section className="marine-weather-report" aria-live="polite">
-        <WeatherReportHeading content={content} />
+        <h2 id="weather-report-heading" className="sr-only">
+          {content.heading}
+        </h2>
         <div className="weather-loading">Loading NOAA weather...</div>
       </section>
     );
@@ -88,7 +89,9 @@ export function MarineWeatherReport({
   if (errorMessage || !report) {
     return (
       <section className="marine-weather-report" aria-live="polite">
-        <WeatherReportHeading content={content} />
+        <h2 id="weather-report-heading" className="sr-only">
+          {content.heading}
+        </h2>
         <div className="weather-error">
           Weather data is unavailable for this location right now.
         </div>
@@ -105,23 +108,30 @@ export function MarineWeatherReport({
       className="marine-weather-report"
       aria-labelledby="weather-report-heading"
     >
-      <WeatherReportHeading content={content} />
+      <h2 id="weather-report-heading" className="sr-only">
+        {content.heading}
+      </h2>
 
-      <div className="weather-report-stack">
-        <div className="weather-report-grid">
-          <ChartPanel className="weather-chart-panel temperature-chart-panel">
-            <TemperatureForecastChart
-              points={report.hourlyForecast}
-              waterTemperatureFahrenheit={report.waterTemperature?.temperatureFahrenheit}
-            />
-          </ChartPanel>
-
-          <DataPanel className="weather-data-panel">
-            <div className="weather-panel-heading">
+      <div className="api-card-grid weather-card-grid">
+        <article className="api-data-card weather-data-card">
+          <header className="api-data-card-header">
+            <div>
               <p className="eyebrow">Temperature</p>
               <h3>Air and water temperatures</h3>
             </div>
+            <span>{report.stationNames.weather ?? "NWS"}</span>
+          </header>
 
+          <div className="api-data-card-chart">
+            <TemperatureForecastChart
+              points={report.hourlyForecast}
+              waterTemperatureFahrenheit={report.waterTemperature?.temperatureFahrenheit}
+              xAxisLabel="Local time"
+              yAxisLabel="Temperature (deg F)"
+            />
+          </div>
+
+          <div className="api-data-card-content">
             <div className="weather-stat-grid weather-stat-grid-dual">
               {temperatureStats.map((stat) => (
                 <WeatherStatCard key={stat.label} stat={stat} />
@@ -132,20 +142,27 @@ export function MarineWeatherReport({
               {content.sourceNote} Forecast grid {report.stationNames.weather ?? "NWS"}; water station{" "}
               {report.stationNames.water ?? report.waterTemperature?.stationName ?? "NOAA"}.
             </p>
-          </DataPanel>
-        </div>
+          </div>
+        </article>
 
-        <div className="weather-report-grid">
-          <ChartPanel className="weather-chart-panel wind-chart-panel">
-            <WindForecastChart points={report.hourlyForecast} />
-          </ChartPanel>
-
-          <DataPanel className="weather-data-panel">
-            <div className="weather-panel-heading">
+        <article className="api-data-card weather-data-card">
+          <header className="api-data-card-header">
+            <div>
               <p className="eyebrow">Wind</p>
               <h3>Wind speed and gusts</h3>
             </div>
+            <span>{report.windObservation?.sourceName ?? "NOAA"}</span>
+          </header>
 
+          <div className="api-data-card-chart">
+            <WindForecastChart
+              points={report.hourlyForecast}
+              xAxisLabel="Local time"
+              yAxisLabel="Wind (kt)"
+            />
+          </div>
+
+          <div className="api-data-card-content">
             <div className="weather-stat-grid weather-stat-grid-dual">
               {windStats.map((stat) => (
                 <WeatherStatCard key={stat.label} stat={stat} />
@@ -156,54 +173,39 @@ export function MarineWeatherReport({
               Forecast grid {report.stationNames.weather ?? "NWS"}; latest wind observation from{" "}
               {report.windObservation?.sourceName ?? "NOAA"}.
             </p>
-          </DataPanel>
-        </div>
-      </div>
+          </div>
+        </article>
 
-      {waveStats.length > 0 ? (
-        <section
-          className="wave-observation-section"
-          aria-labelledby="wave-observation-heading"
-        >
-          <DataPanel className="wave-data-panel">
-            <div className="wave-observation-heading">
+        {waveStats.length > 0 ? (
+          <article className="api-data-card weather-data-card wave-data-card">
+            <header className="api-data-card-header">
               <div>
                 <p className="eyebrow">Waves</p>
-                <h3 id="wave-observation-heading">Wave observations</h3>
+                <h3>Wave observations</h3>
               </div>
               <span>{report.stationNames.waves ?? "NDBC"}</span>
+            </header>
+
+            <div className="api-data-card-chart">
+              <WaveObservationChart report={report} />
             </div>
 
-            <div className="weather-stat-grid wave-stat-grid">
-              {waveStats.map((stat) => (
-                <WeatherStatCard key={stat.label} stat={stat} />
-              ))}
+            <div className="api-data-card-content">
+              <div className="weather-stat-grid wave-stat-grid">
+                {waveStats.map((stat) => (
+                  <WeatherStatCard key={stat.label} stat={stat} />
+                ))}
+              </div>
+
+              <p className="weather-source-note">
+                Latest observation from {report.waveObservation?.sourceName ?? "NDBC"} station{" "}
+                {report.stationNames.waves ?? report.waveObservation?.stationName ?? "unknown"}.
+              </p>
             </div>
-
-            <p className="weather-source-note">
-              Latest observation from {report.waveObservation?.sourceName ?? "NDBC"} station{" "}
-              {report.stationNames.waves ?? report.waveObservation?.stationName ?? "unknown"}.
-            </p>
-          </DataPanel>
-        </section>
-      ) : null}
-    </section>
-  );
-}
-
-function WeatherReportHeading({
-  content,
-}: {
-  content: ReturnType<typeof getActivityWeatherContent>;
-}) {
-  return (
-    <div className="section-heading weather-report-heading">
-      <div>
-        <p className="eyebrow">Weather</p>
-        <h2 id="weather-report-heading">{content.heading}</h2>
+          </article>
+        ) : null}
       </div>
-      <span>{content.badge}</span>
-    </div>
+    </section>
   );
 }
 
@@ -222,11 +224,135 @@ function WeatherStatCard({ stat }: { stat: WeatherStat }) {
   );
 }
 
-function WindForecastChart({ points }: { points: HourlyWeatherPoint[] }) {
+function WaveObservationChart({ report }: { report: MarineWeatherReportData }) {
+  const width = 720;
+  const height = 220;
+  const padding = { bottom: 48, left: 58, right: 26, top: 22 };
+  const observation = report.waveObservation;
+
+  if (!observation) {
+    return <div className="weather-chart-empty">No wave observation chart available.</div>;
+  }
+
+  const metrics = [
+    {
+      label: "Height",
+      value: observation.heightFeet,
+      max: 12,
+      unit: "ft",
+    },
+    {
+      label: "Period",
+      value: observation.periodSeconds,
+      max: 20,
+      unit: "sec",
+    },
+    {
+      label: "Direction",
+      value: observation.directionDegrees,
+      max: 360,
+      unit: "deg",
+    },
+  ].filter((metric) => metric.value !== undefined);
+
+  if (metrics.length === 0) {
+    return <div className="weather-chart-empty">No wave observation chart available.</div>;
+  }
+
+  const plotBottom = height - padding.bottom;
+  const plotTop = padding.top;
+  const plotHeight = plotBottom - plotTop;
+  const plotWidth = width - padding.left - padding.right;
+  const slotWidth = plotWidth / metrics.length;
+  const barWidth = Math.min(72, slotWidth * 0.44);
+  const axisTicks = [1, 0.75, 0.5, 0.25, 0];
+
+  return (
+    <svg
+      className="wave-chart"
+      role="img"
+      aria-label="Latest wave observation chart"
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+    >
+      {axisTicks.map((ratio) => {
+        const y = plotTop + (1 - ratio) * plotHeight;
+
+        return (
+          <g className="wave-chart-y-tick" key={ratio}>
+            <line x1={padding.left} x2={width - padding.right} y1={y} y2={y} />
+            <text x={padding.left - 10} y={y + 4} textAnchor="end">
+              {`${Math.round(ratio * 100)}%`}
+            </text>
+          </g>
+        );
+      })}
+      {metrics.map((metric, index) => {
+        const normalized = Math.max(0, Math.min((metric.value ?? 0) / metric.max, 1));
+        const xCenter = padding.left + slotWidth * (index + 0.5);
+        const barHeight = normalized * plotHeight;
+        const y = plotBottom - barHeight;
+
+        return (
+          <g className="wave-chart-bar" key={metric.label}>
+            <rect
+              className="wave-chart-bar-fill"
+              x={xCenter - barWidth / 2}
+              y={y}
+              width={barWidth}
+              height={barHeight}
+              rx="8"
+            />
+            <text x={xCenter} y={plotBottom + 18} textAnchor="middle">
+              {metric.label}
+            </text>
+            <text x={xCenter} y={y - 8} textAnchor="middle">
+              {`${Math.round(metric.value ?? 0)} ${metric.unit}`}
+            </text>
+          </g>
+        );
+      })}
+      <line
+        className="wave-chart-axis"
+        x1={padding.left}
+        x2={width - padding.right}
+        y1={plotBottom}
+        y2={plotBottom}
+      />
+      <text
+        className="wave-chart-axis-label wave-chart-axis-label-y"
+        x={22}
+        y={height / 2}
+        textAnchor="middle"
+        transform={`rotate(-90 22 ${height / 2})`}
+      >
+        Relative intensity
+      </text>
+      <text
+        className="wave-chart-axis-label wave-chart-axis-label-x"
+        x={padding.left + plotWidth / 2}
+        y={height - 4}
+        textAnchor="middle"
+      >
+        Latest buoy observation
+      </text>
+    </svg>
+  );
+}
+
+function WindForecastChart({
+  points,
+  xAxisLabel,
+  yAxisLabel,
+}: {
+  points: HourlyWeatherPoint[];
+  xAxisLabel: string;
+  yAxisLabel: string;
+}) {
   const gradientId = `wind-chart-gradient-${useId().replace(/:/g, "")}`;
   const width = 720;
-  const height = 260;
-  const padding = { bottom: 34, left: 44, right: 24, top: 18 };
+  const height = 280;
+  const padding = { bottom: 44, left: 58, right: 24, top: 20 };
   const chartPoints = points.slice(0, 24);
   const domainStartMinute = 0;
   const domainEndMinute = 24 * 60 - 1;
@@ -260,10 +386,14 @@ function WindForecastChart({ points }: { points: HourlyWeatherPoint[] }) {
   const speedPath = buildSmoothPath(coordinates.map((point) => ({ x: point.x, y: point.speedY })));
   const gustPath = buildSmoothPath(coordinates.map((point) => ({ x: point.x, y: point.gustY })));
   const areaPath = `${gustPath} L ${coordinates[coordinates.length - 1].x} ${plotBottom} L ${coordinates[0].x} ${plotBottom} Z`;
-  const yTicks = getSpeedTicks(maxSpeed).map((speed) => ({
-    label: `${Math.round(mphToKnots(speed))} kt`,
-    y: plotBottom - (speed / maxSpeed) * plotHeight,
-  }));
+  const yTicks = getSpeedTicks(maxSpeed).map((speed) => {
+    const knots = mphToKnots(speed);
+
+    return {
+      label: `${Math.round(knots)} kt`,
+      y: plotBottom - (speed / maxSpeed) * plotHeight,
+    };
+  });
   const xTicks = getTimeTicks(domainStartMinute, domainEndMinute, 6).map((minute) => ({
     label: formatChartHour(minute),
     x: padding.left + ((minute - domainStartMinute) / minuteRange) * plotWidth,
@@ -313,6 +443,15 @@ function WindForecastChart({ points }: { points: HourlyWeatherPoint[] }) {
         y1={plotBottom}
         y2={plotBottom}
       />
+      <text
+        className="wind-chart-axis-label wind-chart-axis-label-y"
+        x={20}
+        y={height / 2}
+        textAnchor="middle"
+        transform={`rotate(-90 20 ${height / 2})`}
+      >
+        {yAxisLabel}
+      </text>
       {xTicks.map((tick) => (
         <g className="wind-chart-x-tick" key={tick.label}>
           <line x1={tick.x} x2={tick.x} y1={plotBottom} y2={plotBottom + 5} />
@@ -321,6 +460,14 @@ function WindForecastChart({ points }: { points: HourlyWeatherPoint[] }) {
           </text>
         </g>
       ))}
+      <text
+        className="wind-chart-axis-label wind-chart-axis-label-x"
+        x={padding.left + plotWidth / 2}
+        y={height - 2}
+        textAnchor="middle"
+      >
+        {xAxisLabel}
+      </text>
     </svg>
   );
 }
@@ -328,13 +475,17 @@ function WindForecastChart({ points }: { points: HourlyWeatherPoint[] }) {
 function TemperatureForecastChart({
   points,
   waterTemperatureFahrenheit,
+  xAxisLabel,
+  yAxisLabel,
 }: {
   points: HourlyWeatherPoint[];
   waterTemperatureFahrenheit?: number;
+  xAxisLabel: string;
+  yAxisLabel: string;
 }) {
   const width = 720;
-  const height = 260;
-  const padding = { bottom: 34, left: 44, right: 24, top: 18 };
+  const height = 280;
+  const padding = { bottom: 44, left: 58, right: 24, top: 20 };
   const chartPoints = points.slice(0, 24);
   const domainStartMinute = 0;
   const domainEndMinute = 24 * 60 - 1;
@@ -425,6 +576,15 @@ function TemperatureForecastChart({
         y1={plotBottom}
         y2={plotBottom}
       />
+      <text
+        className="temperature-chart-axis-label temperature-chart-axis-label-y"
+        x={20}
+        y={height / 2}
+        textAnchor="middle"
+        transform={`rotate(-90 20 ${height / 2})`}
+      >
+        {yAxisLabel}
+      </text>
       {xTicks.map((tick) => (
         <g className="temperature-chart-x-tick" key={tick.label}>
           <line x1={tick.x} x2={tick.x} y1={plotBottom} y2={plotBottom + 5} />
@@ -433,6 +593,14 @@ function TemperatureForecastChart({
           </text>
         </g>
       ))}
+      <text
+        className="temperature-chart-axis-label temperature-chart-axis-label-x"
+        x={padding.left + plotWidth / 2}
+        y={height - 2}
+        textAnchor="middle"
+      >
+        {xAxisLabel}
+      </text>
     </svg>
   );
 }
@@ -649,7 +817,10 @@ function getTimeTicks(
 }
 
 function getSpeedTicks(maxSpeed: number): number[] {
-  return [maxSpeed, maxSpeed * 0.66, maxSpeed * 0.33, 0];
+  const roundedMax = Math.max(10, Math.ceil(maxSpeed / 5) * 5);
+  const step = roundedMax / 4;
+
+  return [roundedMax, roundedMax - step, roundedMax - step * 2, roundedMax - step * 3, 0];
 }
 
 function getLinearTicks(minimum: number, maximum: number, segments: number): number[] {

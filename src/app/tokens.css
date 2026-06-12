@@ -27,6 +27,9 @@
   --color-accent-moon: #e0aa62;
   --color-accent-kelp: #5c8a77;
   --color-accent-lavender: #7d91a4;
+  --color-chart-orange: #de7a24;
+  --color-chart-orange-deep: #9f4f14;
+  --color-chart-orange-soft: #f2c18f;
 
   --color-status-success: #2f8069;
   --color-status-warning: #a66723;
@@ -193,6 +196,9 @@
   --color-accent-moon: #e0b77a;
   --color-accent-kelp: #93ad92;
   --color-accent-lavender: #a8adb8;
+  --color-chart-orange: #f09a47;
+  --color-chart-orange-deep: #c26f26;
+  --color-chart-orange-soft: #f2c18f;
 
   --color-status-success: #8bb79d;
   --color-status-warning: #ddb271;
@@ -273,6 +279,9 @@
     --color-accent-moon: #e0b77a;
     --color-accent-kelp: #93ad92;
     --color-accent-lavender: #a8adb8;
+    --color-chart-orange: #f09a47;
+    --color-chart-orange-deep: #c26f26;
+    --color-chart-orange-soft: #f2c18f;
 
     --color-status-success: #8bb79d;
     --color-status-warning: #ddb271;

@@ -5,7 +5,6 @@ import type {
   TidePrediction,
   TideReport as TideReportData,
 } from "../../domain/tide/types";
-import { ChartPanel, DataPanel } from "./DataDisplayPanels";
 
 export interface TideReportProps {
   activityId: ActivityId;
@@ -27,7 +26,9 @@ export function TideReport({
   if (isLoading) {
     return (
       <section className="tide-report" data-variant={variant} aria-live="polite">
-        <TideReportHeading variant={variant} />
+        <h2 id="tide-report-heading" className="sr-only">
+          Tide report
+        </h2>
         <div className="tide-loading">Loading NOAA tide predictions...</div>
       </section>
     );
@@ -36,7 +37,9 @@ export function TideReport({
   if (errorMessage || !report) {
     return (
       <section className="tide-report" data-variant={variant} aria-live="polite">
-        <TideReportHeading variant={variant} />
+        <h2 id="tide-report-heading" className="sr-only">
+          Tide report
+        </h2>
         <div className="tide-error">
           Tide predictions are unavailable for this station right now.
         </div>
@@ -53,97 +56,94 @@ export function TideReport({
 
   return (
     <section className="tide-report" data-variant={variant} aria-labelledby="tide-report-heading">
-      <TideReportHeading variant={variant} />
+      <h2 id="tide-report-heading" className="sr-only">
+        Tide report
+      </h2>
 
-      <div className="tide-report-grid">
-        <ChartPanel>
-          <TideChart
-            points={report.chart}
-            events={report.highLow}
-            showYAxis={variant === "feature"}
-            xTickIntervalHours={variant === "feature" ? 4 : 6}
-          />
-        </ChartPanel>
-
-        <DataPanel>
-          <div className="tide-stat-grid">
-            <TideStat
-              label={variant === "feature" ? "Lowest tide" : "Next low"}
-              value={lowestLow ? formatHeight(lowestLow.heightFeet) : "No low"}
-              detail={lowestLow ? formatTime(lowestLow.at) : "Unavailable"}
-            />
-            <TideStat
-              label={variant === "feature" ? "Highest tide" : "Next high"}
-              value={highestHigh ? formatHeight(highestHigh.heightFeet) : "No high"}
-              detail={highestHigh ? formatTime(highestHigh.at) : "Unavailable"}
-            />
-            {variant !== "compact" ? (
-              <TideStat
-                label="Daily range"
-                value={chartSummary ? formatHeight(chartSummary.rangeFeet) : "No data"}
-                detail="Predicted spread"
-              />
-            ) : null}
-          </div>
-
-          <div className="tide-events">
-            <div className="tide-events-heading">
-              <span>Upcoming</span>
-              <small>{report.station.name}</small>
+      <div className="api-card-grid tide-card-grid">
+        <article className="api-data-card tide-data-card">
+          <header className="api-data-card-header">
+            <div>
+              <p className="eyebrow">Tide report</p>
+              <h3>{variant === "feature" ? "Tidepool timing" : "Tide timing"}</h3>
             </div>
-            <ol>
-              {nextTides.map((prediction) => (
-                <li key={`${prediction.at}-${prediction.type}`}>
-                  <span>{formatTime(prediction.at)}</span>
-                  <strong>{prediction.type === "high" ? "High" : "Low"}</strong>
-                  <span>{formatHeight(prediction.heightFeet)}</span>
-                </li>
-              ))}
-            </ol>
+            <span>{variant === "feature" ? "NOAA chart" : "NOAA"}</span>
+          </header>
+
+          <div className="api-data-card-chart">
+            <TideChart
+              points={report.chart}
+              events={report.highLow}
+              xAxisLabel="Local time"
+              xTickIntervalHours={variant === "feature" ? 4 : 6}
+              yAxisLabel="Tide height (ft)"
+            />
           </div>
 
-          {variant === "feature" ? (
+          <div className="api-data-card-content">
+            <div className="tide-stat-grid">
+              <TideStat
+                label={variant === "feature" ? "Lowest tide" : "Next low"}
+                value={lowestLow ? formatHeight(lowestLow.heightFeet) : "No low"}
+                detail={lowestLow ? formatTime(lowestLow.at) : "Unavailable"}
+              />
+              <TideStat
+                label={variant === "feature" ? "Highest tide" : "Next high"}
+                value={highestHigh ? formatHeight(highestHigh.heightFeet) : "No high"}
+                detail={highestHigh ? formatTime(highestHigh.at) : "Unavailable"}
+              />
+              {variant !== "compact" ? (
+                <TideStat
+                  label="Daily range"
+                  value={chartSummary ? formatHeight(chartSummary.rangeFeet) : "No data"}
+                  detail="Predicted spread"
+                />
+              ) : null}
+            </div>
+
+            <div className="tide-events">
+              <div className="tide-events-heading">
+                <span>Upcoming</span>
+                <small>{report.station.name}</small>
+              </div>
+              <ol>
+                {nextTides.map((prediction) => (
+                  <li key={`${prediction.at}-${prediction.type}`}>
+                    <span>{formatTime(prediction.at)}</span>
+                    <strong>{prediction.type === "high" ? "High" : "Low"}</strong>
+                    <span>{formatHeight(prediction.heightFeet)}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
             <p className="tide-source-note">
               {report.sourceName} predictions in feet relative to {report.datum}.
             </p>
-          ) : null}
-        </DataPanel>
+          </div>
+        </article>
       </div>
     </section>
-  );
-}
-
-function TideReportHeading({ variant }: { variant: TideReportVariant }) {
-  return (
-    <div className="section-heading tide-report-heading">
-      <div>
-        <p className="eyebrow">Tide report</p>
-        <h2 id="tide-report-heading">
-          {variant === "feature" ? "Tidepool timing" : "Tide timing"}
-        </h2>
-      </div>
-      <span>{variant === "feature" ? "NOAA chart" : "NOAA"}</span>
-    </div>
   );
 }
 
 function TideChart({
   events,
   points,
-  showYAxis,
+  xAxisLabel,
   xTickIntervalHours,
+  yAxisLabel,
 }: {
   events: TidePrediction[];
   points: TideChartPoint[];
-  showYAxis: boolean;
+  xAxisLabel: string;
   xTickIntervalHours: number;
+  yAxisLabel: string;
 }) {
   const gradientId = `tide-chart-gradient-${useId().replace(/:/g, "")}`;
   const width = 720;
-  const height = 260;
-  const padding = showYAxis
-    ? { bottom: 34, left: 50, right: 22, top: 18 }
-    : { bottom: 28, left: 20, right: 18, top: 16 };
+  const height = 280;
+  const padding = { bottom: 44, left: 64, right: 22, top: 20 };
 
   if (points.length === 0) {
     return <div className="tide-chart-empty">No chart points available.</div>;
@@ -178,12 +178,10 @@ function TideChart({
       x: padding.left + ((minute - startMinute) / minuteRange) * plotWidth,
     }),
   );
-  const yTicks = showYAxis
-    ? getHeightTicks(minHeight, maxHeight).map((heightFeet) => ({
-        heightFeet,
-        y: plotBottom - ((heightFeet - minHeight) / range) * plotHeight,
-      }))
-    : [];
+  const yTicks = getHeightTicks(minHeight, maxHeight).map((heightFeet) => ({
+    heightFeet,
+    y: plotBottom - ((heightFeet - minHeight) / range) * plotHeight,
+  }));
 
   return (
     <svg
@@ -228,6 +226,15 @@ function TideChart({
         y1={plotBottom}
         y2={plotBottom}
       />
+      <text
+        className="tide-chart-axis-label tide-chart-axis-label-y"
+        x={20}
+        y={height / 2}
+        textAnchor="middle"
+        transform={`rotate(-90 20 ${height / 2})`}
+      >
+        {yAxisLabel}
+      </text>
       {timeTicks.map((tick) => (
         <g className="tide-chart-x-tick" key={tick.label}>
           <line x1={tick.x} x2={tick.x} y1={plotBottom} y2={plotBottom + 5} />
@@ -236,6 +243,14 @@ function TideChart({
           </text>
         </g>
       ))}
+      <text
+        className="tide-chart-axis-label tide-chart-axis-label-x"
+        x={padding.left + plotWidth / 2}
+        y={height - 2}
+        textAnchor="middle"
+      >
+        {xAxisLabel}
+      </text>
       {events.slice(0, 4).map((event) => {
         const point = getNearestChartPoint(event.at, coordinates);
 

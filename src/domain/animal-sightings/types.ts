@@ -2,9 +2,10 @@ import type { ActivityId } from "../../activities";
 import type { GeoPoint } from "../location/types";
 
 export type AnimalSightingQualityGrade = "casual" | "needs_id" | "research";
+export type AnimalSightingSearchArea = "coastline" | "ocean";
 
 export interface AnimalSightingSearch {
-  activityId: Extract<ActivityId, "dive" | "tidepools">;
+  activityId: ActivityId;
   center: GeoPoint;
   dateEnd: string;
   daysBack: number;
@@ -12,6 +13,7 @@ export interface AnimalSightingSearch {
   perPage?: number;
   query?: string;
   radiusKm: number;
+  searchArea: AnimalSightingSearchArea;
 }
 
 export interface AnimalTaxon {
@@ -35,6 +37,7 @@ export interface AnimalSighting {
   point?: GeoPoint;
   placeGuess?: string;
   qualityGrade: AnimalSightingQualityGrade;
+  searchArea: AnimalSightingSearchArea;
   taxon: AnimalTaxon;
   uri: string;
   userLogin?: string;

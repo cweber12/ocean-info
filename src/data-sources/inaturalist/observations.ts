@@ -5,6 +5,7 @@ import type {
   AnimalSightingGroupReport,
   AnimalSightingPage,
   AnimalSightingQualityGrade,
+  AnimalSightingSearchArea,
   AnimalSightingSearch,
   AnimalTaxon,
 } from "../../domain/animal-sightings/types";
@@ -143,7 +144,7 @@ export async function fetchInaturalistAnimalSightings(
   );
   const researchSightings = researchResponse.results
     .filter((observation) => hasMarineishTaxon(observation, search))
-    .map(mapSighting)
+    .map((observation) => mapSighting(observation, search.searchArea))
     .sort((first, second) => compareSightings(first, second, search.activityId));
   const needsIdResponse = await getJson(
     buildObservationsUrl(search, {
@@ -156,7 +157,7 @@ export async function fetchInaturalistAnimalSightings(
   );
   const needsIdSightings = needsIdResponse.results
     .filter((observation) => hasMarineishTaxon(observation, search))
-    .map(mapSighting)
+    .map((observation) => mapSighting(observation, search.searchArea))
     .sort((first, second) => compareSightings(first, second, search.activityId));
   const sightings = [...researchSightings, ...needsIdSightings];
   const pageStart = (page - 1) * perPage;
@@ -226,6 +227,7 @@ function mapSighting(
   observation: InaturalistObservation & {
     taxon: InaturalistTaxon;
   },
+  searchArea: AnimalSightingSearchArea,
 ): AnimalSighting {
   const firstPhoto = (observation.photos ?? []).find((photo) => photo.url);
   const photoUrl = firstPhoto?.url ?? getTaxonPhotoUrl(observation.taxon);
@@ -243,6 +245,7 @@ function mapSighting(
       : undefined,
     placeGuess: observation.place_guess ?? undefined,
     qualityGrade: (observation.quality_grade ?? "needs_id") as AnimalSightingQualityGrade,
+    searchArea,
     taxon: mapTaxon(observation.taxon),
     uri: observation.uri ?? `https://www.inaturalist.org/observations/${observation.id}`,
     userLogin: observation.user?.login ?? undefined,
@@ -326,7 +329,7 @@ function hasMarineishTaxon(
   return Boolean(
     observation.taxon &&
       isMarineishTaxon(observation.taxon, search.activityId) &&
-      isLikelyCoastalOrOceanSighting(observation, search),
+      isLikelySightingForSearchArea(observation, search),
   );
 }
 
@@ -359,7 +362,7 @@ function isMarineishTaxon(
     return true;
   }
 
-  return activityPriorityNameHints[activityId].some((hint) =>
+  return (activityPriorityNameHints[activityId] ?? []).some((hint) =>
     searchableName.includes(hint),
   );
 }
@@ -433,6 +436,7 @@ const activityPriorityNameHints: Record<
   AnimalSightingSearch["activityId"],
   string[]
 > = {
+  "beach-day": ["dolphin", "seal", "sea lion", "ray", "pelican", "shore crab"],
   dive: [
     "shark",
     "octopus",
@@ -447,6 +451,9 @@ const activityPriorityNameHints: Record<
     "sea bass",
     "ray",
   ],
+  sail: ["dolphin", "whale", "sea lion", "tuna", "shark", "ray", "tern"],
+  "sup-kayak": ["dolphin", "ray", "sea lion", "seal", "octopus", "fish"],
+  surf: ["dolphin", "sea lion", "seal", "ray", "fish", "pelican"],
   tidepools: [
     "nudibranch",
     "anemone",
@@ -466,6 +473,7 @@ const activityPriorityNameHints: Record<
 };
 
 const marinePlaceNameHints = [
+  "bay",
   "beach",
   "coast",
   "cove",
@@ -486,6 +494,36 @@ const marinePlaceNameHints = [
   "tide",
   "tidal",
   "tidepool",
+  "waterfront",
+];
+
+const coastlinePlaceNameHints = [
+  "beach",
+  "coast",
+  "cove",
+  "harbor",
+  "intertidal",
+  "jetty",
+  "lagoon",
+  "pier",
+  "rocky shore",
+  "shore",
+  "surf",
+  "tide",
+  "tidal",
+  "tidepool",
+];
+
+const oceanPlaceNameHints = [
+  "blue water",
+  "channel",
+  "offshore",
+  "open ocean",
+  "open water",
+  "pelagic",
+  "sea",
+  "ocean",
+  "reef",
 ];
 
 const inlandPlaceNameHints = [
@@ -577,12 +615,18 @@ function getTaxonPriorityScore(
   return 0;
 }
 
-function isLikelyCoastalOrOceanSighting(
+function isLikelySightingForSearchArea(
   observation: InaturalistObservation,
   search: AnimalSightingSearch,
 ) {
   const placeGuess = observation.place_guess?.toLowerCase() ?? "";
   const hasMarinePlaceHint = marinePlaceNameHints.some((hint) =>
+    placeGuess.includes(hint),
+  );
+  const hasCoastlinePlaceHint = coastlinePlaceNameHints.some((hint) =>
+    placeGuess.includes(hint),
+  );
+  const hasOceanPlaceHint = oceanPlaceNameHints.some((hint) =>
     placeGuess.includes(hint),
   );
   const hasInlandPlaceHint = inlandPlaceNameHints.some((hint) =>
@@ -595,10 +639,35 @@ function isLikelyCoastalOrOceanSighting(
 
   const point = mapObservationPoint(observation.geojson);
   if (!point) {
-    return true;
+    if (search.searchArea === "ocean") {
+      return hasOceanPlaceHint;
+    }
+
+    return hasCoastlinePlaceHint || hasMarinePlaceHint;
   }
 
-  return !isLikelyFarInlandFromCoast(point, search.center);
+  const isFarInland = isLikelyFarInlandFromCoast(point, search.center);
+
+  if (isFarInland) {
+    return false;
+  }
+
+  const offshoreKilometers = getWestwardKilometersFromCenter(point, search.center);
+  const isLikelyOffshore = offshoreKilometers >= 1.5;
+
+  if (search.searchArea === "ocean") {
+    return isLikelyOffshore || hasOceanPlaceHint;
+  }
+
+  return !isLikelyOffshore || hasCoastlinePlaceHint;
+}
+
+function getWestwardKilometersFromCenter(point: GeoPoint, center: GeoPoint) {
+  const latitudeRadians = (center.latitude * Math.PI) / 180;
+  const kilometersPerDegreeLongitude = 111.32 * Math.cos(latitudeRadians);
+  const deltaLongitude = center.longitude - point.longitude;
+
+  return deltaLongitude * kilometersPerDegreeLongitude;
 }
 
 function isLikelyFarInlandFromCoast(point: GeoPoint, center: GeoPoint) {

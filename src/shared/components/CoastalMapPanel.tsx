@@ -10,7 +10,6 @@ import type { BuoyStation } from "../../locations/buoy-stations";
 export interface CoastalMapPanelProps {
   buoyStation?: BuoyStation;
   location: CoastalLocation;
-  showSightingPins: boolean;
   sightings: AnimalSighting[];
   tideStation: TideStation;
 }
@@ -18,7 +17,6 @@ export interface CoastalMapPanelProps {
 export function CoastalMapPanel({
   buoyStation,
   location,
-  showSightingPins,
   sightings,
   tideStation,
 }: CoastalMapPanelProps) {
@@ -48,10 +46,6 @@ export function CoastalMapPanel({
 
   const sightingMarkers = useMemo(
     () => {
-      if (!showSightingPins) {
-        return [];
-      }
-
       const markers: Array<{
         id: number;
         point: NonNullable<AnimalSighting["point"]>;
@@ -75,7 +69,7 @@ export function CoastalMapPanel({
 
       return markers;
     },
-    [showSightingPins, sightings],
+    [sightings],
   );
 
   const markers = [...stationMarkers, ...sightingMarkers];
@@ -84,7 +78,7 @@ export function CoastalMapPanel({
     [selectedSightingId, sightings],
   );
 
-  const hasSightingDetail = Boolean(selectedSighting && showSightingPins);
+  const hasSightingDetail = Boolean(selectedSighting);
 
   return (
     <section className="coastal-map-panel" aria-labelledby="coastal-map-heading">
@@ -126,6 +120,20 @@ export function CoastalMapPanel({
               <div className="coastal-map-detail-copy">
                 <strong>{selectedSighting.taxon.commonName ?? selectedSighting.taxon.name}</strong>
                 <small>{selectedSighting.taxon.name}</small>
+                <div className="coastal-map-detail-area">
+                  <span className="coastal-map-detail-area-icon" aria-hidden="true">
+                    {selectedSighting.searchArea === "ocean" ? (
+                      <FishAreaIcon />
+                    ) : (
+                      <SeaUrchinAreaIcon />
+                    )}
+                  </span>
+                  <span>
+                    {selectedSighting.searchArea === "ocean"
+                      ? "Ocean sighting"
+                      : "Coastline sighting"}
+                  </span>
+                </div>
 
                 <dl className="coastal-map-detail-grid">
                   <div>
@@ -193,8 +201,8 @@ export function CoastalMapPanel({
             {sightingMarkers.map(({ sighting, point }) => (
               <Marker
                 eventHandlers={{ click: () => setSelectedSightingId(sighting.id) }}
-                icon={buildSightingIcon()}
-                key={`${sighting.id}-${marineSightingIconVersion}`}
+                icon={buildSightingIcon(sighting.searchArea)}
+                key={`${sighting.id}-${sighting.searchArea}-${marineSightingIconVersion}`}
                 position={[point.latitude, point.longitude]}
               >
                 <Tooltip direction="top" offset={[0, -14]} opacity={0.96} permanent={false}>
@@ -267,8 +275,8 @@ function buildStationIcon(tone: "tide" | "buoy") {
   });
 }
 
-function buildSightingIcon() {
-  return marineSightingIcon;
+function buildSightingIcon(searchArea: AnimalSighting["searchArea"]) {
+  return searchArea === "ocean" ? marineSightingIcon : coastlineSightingIcon;
 }
 
 const mapPinBackground = `
@@ -284,6 +292,13 @@ const marineSightingIcon = icon({
   popupAnchor: [0, -30],
 });
 
+const coastlineSightingIcon = icon({
+  iconAnchor: [18, 44],
+  iconSize: [36, 44],
+  iconUrl: buildCoastlineSightingPinDataUri(),
+  popupAnchor: [0, -30],
+});
+
 const marineSightingIconVersion = "dark-blue-fish-pin-v1";
 
 function buildMarineSightingPinDataUri() {
@@ -293,6 +308,20 @@ function buildMarineSightingPinDataUri() {
       <path d="M18 1.5C9.16 1.5 2 8.66 2 17.5c0 10.74 12.88 22.25 15.08 24.12.53.45 1.31.45 1.84 0C21.12 39.75 34 28.24 34 17.5 34 8.66 26.84 1.5 18 1.5Z" fill="#033c45" stroke="#ffffff" stroke-opacity="0.88" stroke-width="2"/>
       <g transform="translate(5.7 6.2) scale(1.03)">
         <path d="${fishPath}" fill="none" stroke="#f0a14c" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"/>
+      </g>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function buildCoastlineSightingPinDataUri() {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 44">
+      <path d="M18 1.5C9.16 1.5 2 8.66 2 17.5c0 10.74 12.88 22.25 15.08 24.12.53.45 1.31.45 1.84 0C21.12 39.75 34 28.24 34 17.5 34 8.66 26.84 1.5 18 1.5Z" fill="#1f5c41" stroke="#ffffff" stroke-opacity="0.88" stroke-width="2"/>
+      <g transform="translate(18 17)">
+        <circle cx="0" cy="0" r="5" fill="none" stroke="#f4d483" stroke-width="1.9"/>
+        <path d="M0 -10V-6.8M0 6.8V10M-10 0h3.2M6.8 0H10M-7.3 -7.3l2.3 2.3M5 5l2.3 2.3M7.3 -7.3L5 -5M-5 5l-2.3 2.3M-6.2 0h2M4.2 0h2M0 -6.2v2M0 4.2v2" stroke="#f4d483" stroke-width="1.6" stroke-linecap="round"/>
       </g>
     </svg>
   `;
@@ -329,4 +358,34 @@ function formatQualityGrade(qualityGrade: string) {
   }
 
   return "Needs ID";
+}
+
+function FishAreaIcon() {
+  return (
+    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+      <path
+        d="M4 12c2.6-3.3 6-4.8 10.2-4.5l4.3-2.1v4.3l2.1 2.3-2.1 2.3v4.3l-4.3-2.1C10 17 6.6 15.4 4 12Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="13.6" cy="10.2" r="1.1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SeaUrchinAreaIcon() {
+  return (
+    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M12 2.2V5.1M12 18.9v2.9M2.2 12h2.9M18.9 12h2.9M4.8 4.8l2 2M17.2 17.2l2 2M19.2 4.8l-2 2M6.8 17.2l-2 2M6.1 12h2.1M15.8 12h2.1M12 6.1v2.1M12 15.8v2.1"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
 }

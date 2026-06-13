@@ -5,7 +5,8 @@ import type {
   AnimalSightingPage,
 } from "../../domain/animal-sightings/types";
 
-interface SearchAreaPanelModel {
+export interface AnimalSightingsPanelProps {
+  activityId: ActivityId;
   daysBack: number;
   errorMessage?: string;
   groupReport?: AnimalSightingGroupReport;
@@ -21,18 +22,23 @@ interface SearchAreaPanelModel {
   sightingPage?: AnimalSightingPage;
 }
 
-export interface AnimalSightingsPanelProps {
-  activityId: ActivityId;
-  coastlineArea: SearchAreaPanelModel;
-  oceanArea: SearchAreaPanelModel;
-}
-
 export function AnimalSightingsPanel({
   activityId,
-  coastlineArea,
-  oceanArea,
+  daysBack,
+  errorMessage,
+  groupReport,
+  isGroupsLoading,
+  isSightingsLoading,
+  onDaysBackChange,
+  onPageChange,
+  onQueryChange,
+  onRadiusKmChange,
+  page,
+  query,
+  radiusKm,
+  sightingPage,
 }: AnimalSightingsPanelProps) {
-  const sourceName = coastlineArea.groupReport?.sourceName ?? oceanArea.groupReport?.sourceName;
+  const hasNextPage = Boolean(sightingPage && page * 4 < sightingPage.totalResults);
 
   return (
     <section className="animal-sightings" aria-labelledby="animal-sightings-heading">
@@ -41,64 +47,36 @@ export function AnimalSightingsPanel({
           <p className="eyebrow">Animal sightings</p>
           <h2 id="animal-sightings-heading">{getActivitySightingHeading(activityId)}</h2>
         </div>
-        <span>{sourceName ?? "iNaturalist"}</span>
+        <span>{groupReport?.sourceName ?? "iNaturalist"}</span>
       </div>
 
       <div className="animal-sightings-panel">
-        <div className="animal-sightings-area-grid">
-          <SearchAreaSection area="coastline" model={coastlineArea} />
-          <SearchAreaSection area="ocean" model={oceanArea} />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SearchAreaSection({
-  area,
-  model,
-}: {
-  area: "coastline" | "ocean";
-  model: SearchAreaPanelModel;
-}) {
-  const idPrefix = `animal-${area}`;
-  const hasNextPage = Boolean(model.sightingPage && model.page * 4 < model.sightingPage.totalResults);
-
-  return (
-    <section className="animal-sightings-area" aria-label={`${getSearchAreaLabel(area)} sightings`}>
-      <div className="animal-sightings-area-heading">
-        <span className="animal-sighting-area-icon" aria-hidden="true">
-          {area === "ocean" ? <FishAreaIcon /> : <SeaUrchinAreaIcon />}
-        </span>
-        <h3>{getSearchAreaLabel(area)}</h3>
-      </div>
-
       <div className="animal-sightings-controls">
-        <label htmlFor={`${idPrefix}-search`}>
+        <label htmlFor="animal-search">
           <span>Animal name</span>
           <div className="animal-search-field">
             <Search aria-hidden="true" size={18} strokeWidth={2.2} />
             <input
-              id={`${idPrefix}-search`}
+              id="animal-search"
               type="search"
-              value={model.query}
+              value={query}
               placeholder="Search animals"
               onChange={(event) => {
-                model.onPageChange(1);
-                model.onQueryChange(event.target.value);
+                onPageChange(1);
+                onQueryChange(event.target.value);
               }}
             />
           </div>
         </label>
 
-        <label htmlFor={`${idPrefix}-radius`}>
+        <label htmlFor="animal-radius">
           <span>Radius</span>
           <select
-            id={`${idPrefix}-radius`}
-            value={model.radiusKm}
+            id="animal-radius"
+            value={radiusKm}
             onChange={(event) => {
-              model.onPageChange(1);
-              model.onRadiusKmChange(Number(event.target.value));
+              onPageChange(1);
+              onRadiusKmChange(Number(event.target.value));
             }}
           >
             {[1, 3, 5, 10, 15, 25].map((radius) => (
@@ -109,14 +87,14 @@ function SearchAreaSection({
           </select>
         </label>
 
-        <label htmlFor={`${idPrefix}-timeline`}>
+        <label htmlFor="animal-timeline">
           <span>Timeline</span>
           <select
-            id={`${idPrefix}-timeline`}
-            value={model.daysBack}
+            id="animal-timeline"
+            value={daysBack}
             onChange={(event) => {
-              model.onPageChange(1);
-              model.onDaysBackChange(Number(event.target.value));
+              onPageChange(1);
+              onDaysBackChange(Number(event.target.value));
             }}
           >
             {[1, 3, 7, 14, 30].map((days) => (
@@ -128,16 +106,16 @@ function SearchAreaSection({
         </label>
       </div>
 
-      {model.errorMessage ? (
+      {errorMessage ? (
         <div className="animal-sightings-state">
           Animal sightings are unavailable from iNaturalist right now.
         </div>
-      ) : model.isGroupsLoading || model.isSightingsLoading ? (
+      ) : isGroupsLoading || isSightingsLoading ? (
         <div className="animal-sightings-state">Loading recent sightings...</div>
-      ) : model.sightingPage && model.sightingPage.sightings.length > 0 ? (
+      ) : sightingPage && sightingPage.sightings.length > 0 ? (
         <>
           <div className="animal-sighting-list">
-            {model.sightingPage.sightings.map((sighting) => (
+            {sightingPage.sightings.map((sighting) => (
               <a
                 className="animal-sighting-item"
                 href={sighting.uri}
@@ -164,7 +142,7 @@ function SearchAreaSection({
                   <span data-grade={sighting.qualityGrade}>{formatQualityGrade(sighting.qualityGrade)}</span>
                   <span className="animal-sighting-area-badge">
                     <span className="animal-sighting-area-icon" aria-hidden="true">
-                      {sighting.searchArea === "ocean" ? <FishAreaIcon /> : <SeaUrchinAreaIcon />}
+                      {sighting.searchArea === "ocean" ? <FishAreaIcon /> : <AnemoneAreaIcon />}
                     </span>
                     {getSearchAreaLabel(sighting.searchArea)}
                   </span>
@@ -178,19 +156,19 @@ function SearchAreaSection({
             <button
               className="icon-button"
               type="button"
-              aria-label={`Previous ${getSearchAreaLabel(area)} animal sightings page`}
-              disabled={model.page <= 1}
-              onClick={() => model.onPageChange(Math.max(model.page - 1, 1))}
+              aria-label="Previous animal sightings page"
+              disabled={page <= 1}
+              onClick={() => onPageChange(Math.max(page - 1, 1))}
             >
               <ChevronLeft aria-hidden="true" size={18} strokeWidth={2.2} />
             </button>
-            <span>Page {model.page}</span>
+            <span>Page {page}</span>
             <button
               className="icon-button"
               type="button"
-              aria-label={`Next ${getSearchAreaLabel(area)} animal sightings page`}
+              aria-label="Next animal sightings page"
               disabled={!hasNextPage}
-              onClick={() => model.onPageChange(model.page + 1)}
+              onClick={() => onPageChange(page + 1)}
             >
               <ChevronRight aria-hidden="true" size={18} strokeWidth={2.2} />
             </button>
@@ -199,6 +177,7 @@ function SearchAreaSection({
       ) : (
         <div className="animal-sightings-state">No sighting details matched the current filters.</div>
       )}
+      </div>
     </section>
   );
 }
@@ -235,15 +214,16 @@ function FishAreaIcon() {
   );
 }
 
-function SeaUrchinAreaIcon() {
+function AnemoneAreaIcon() {
   return (
     <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="13" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.8" />
       <path
-        d="M12 2.2V5.1M12 18.9v2.9M2.2 12h2.9M18.9 12h2.9M4.8 4.8l2 2M17.2 17.2l2 2M19.2 4.8l-2 2M6.8 17.2l-2 2M6.1 12h2.1M15.8 12h2.1M12 6.1v2.1M12 15.8v2.1"
+        d="M12 2.4v4.2M8.1 3.4l1.9 3.7M15.9 3.4L14 7.1M5.1 5.9l2.8 2.6M18.9 5.9l-2.8 2.6M3.4 9.8l3.7 1.4M20.6 9.8l-3.7 1.4M8.4 18.6c1 1 2.1 1.5 3.6 1.5s2.6-.5 3.6-1.5"
         stroke="currentColor"
         strokeWidth="1.6"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

@@ -125,7 +125,7 @@ export function CoastalMapPanel({
                     {selectedSighting.searchArea === "ocean" ? (
                       <FishAreaIcon />
                     ) : (
-                      <SeaUrchinAreaIcon />
+                      <AnemoneAreaIcon />
                     )}
                   </span>
                   <span>
@@ -320,8 +320,8 @@ function buildCoastlineSightingPinDataUri() {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 44">
       <path d="M18 1.5C9.16 1.5 2 8.66 2 17.5c0 10.74 12.88 22.25 15.08 24.12.53.45 1.31.45 1.84 0C21.12 39.75 34 28.24 34 17.5 34 8.66 26.84 1.5 18 1.5Z" fill="#1f5c41" stroke="#ffffff" stroke-opacity="0.88" stroke-width="2"/>
       <g transform="translate(18 17)">
-        <circle cx="0" cy="0" r="5" fill="none" stroke="#f4d483" stroke-width="1.9"/>
-        <path d="M0 -10V-6.8M0 6.8V10M-10 0h3.2M6.8 0H10M-7.3 -7.3l2.3 2.3M5 5l2.3 2.3M7.3 -7.3L5 -5M-5 5l-2.3 2.3M-6.2 0h2M4.2 0h2M0 -6.2v2M0 4.2v2" stroke="#f4d483" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="0" cy="1" r="3.2" fill="none" stroke="#f4d483" stroke-width="1.8"/>
+        <path d="M0 -11v4.2M-3.9 -10l1.9 3.7M3.9 -10L2 -6.3M-7 -7.5l2.8 2.6M7 -7.5L4.2 -4.9M-8.7 -3.6l3.7 1.4M8.7 -3.6L5 -2.2M-3.6 6.8C-2.6 7.8-1.5 8.3 0 8.3S2.6 7.8 3.6 6.8" stroke="#f4d483" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </g>
     </svg>
   `;
@@ -376,15 +376,16 @@ function FishAreaIcon() {
   );
 }
 
-function SeaUrchinAreaIcon() {
+function AnemoneAreaIcon() {
   return (
     <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="13" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.8" />
       <path
-        d="M12 2.2V5.1M12 18.9v2.9M2.2 12h2.9M18.9 12h2.9M4.8 4.8l2 2M17.2 17.2l2 2M19.2 4.8l-2 2M6.8 17.2l-2 2M6.1 12h2.1M15.8 12h2.1M12 6.1v2.1M12 15.8v2.1"
+        d="M12 2.4v4.2M8.1 3.4l1.9 3.7M15.9 3.4L14 7.1M5.1 5.9l2.8 2.6M18.9 5.9l-2.8 2.6M3.4 9.8l3.7 1.4M20.6 9.8l-3.7 1.4M8.4 18.6c1 1 2.1 1.5 3.6 1.5s2.6-.5 3.6-1.5"
         stroke="currentColor"
         strokeWidth="1.6"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

@@ -129,14 +129,10 @@ function isAnimalSightingActivityId(
 
 export function App() {
   const [plannerState, setPlannerState] = useState(getPlannerStateFromUrl);
-  const [coastlineDaysBack, setCoastlineDaysBack] = useState(30);
-  const [coastlinePage, setCoastlinePage] = useState(1);
-  const [coastlineQuery, setCoastlineQuery] = useState("");
-  const [coastlineRadiusKm, setCoastlineRadiusKm] = useState(10);
-  const [oceanDaysBack, setOceanDaysBack] = useState(30);
-  const [oceanPage, setOceanPage] = useState(1);
-  const [oceanQuery, setOceanQuery] = useState("");
-  const [oceanRadiusKm, setOceanRadiusKm] = useState(10);
+  const [animalDaysBack, setAnimalDaysBack] = useState(30);
+  const [animalPage, setAnimalPage] = useState(1);
+  const [animalQuery, setAnimalQuery] = useState("");
+  const [animalRadiusKm, setAnimalRadiusKm] = useState(10);
   const [isCautionOpen, setIsCautionOpen] = useState(false);
 
   const isMovebankTrackingEnabled = appConfig.features.movebankTracking;
@@ -200,49 +196,47 @@ export function App() {
       selectedLocation.point;
     const dateEnd = toIsoDate(new Date());
 
-    const coastlineSearch: AnimalSightingSearch = {
+    const coastlineSearchBase: AnimalSightingSearch = {
       activityId: plannerState.activityId,
       center,
       dateEnd,
-      daysBack: coastlineDaysBack,
-      page: coastlinePage,
-      perPage: 4,
-      query: coastlineQuery,
-      radiusKm: coastlineRadiusKm,
+      daysBack: animalDaysBack,
+      page: 1,
+      perPage: 200,
+      query: animalQuery,
+      radiusKm: animalRadiusKm,
       searchArea: "coastline",
     };
 
-    const oceanSearch: AnimalSightingSearch = {
+    const oceanSearchBase: AnimalSightingSearch = {
       activityId: plannerState.activityId,
       center,
       dateEnd,
-      daysBack: oceanDaysBack,
-      page: oceanPage,
-      perPage: 4,
-      query: oceanQuery,
-      radiusKm: oceanRadiusKm,
+      daysBack: animalDaysBack,
+      page: 1,
+      perPage: 200,
+      query: animalQuery,
+      radiusKm: animalRadiusKm,
       searchArea: "ocean",
     };
 
+    const trimmedQuery = animalQuery.trim();
+    const normalizedQuery = trimmedQuery && trimmedQuery.length >= 2 ? trimmedQuery : "";
+
     return {
-      coastline:
-        coastlineSearch.query?.trim() && coastlineSearch.query.trim().length < 2
-          ? { ...coastlineSearch, query: "" }
-          : coastlineSearch,
-      ocean:
-        oceanSearch.query?.trim() && oceanSearch.query.trim().length < 2
-          ? { ...oceanSearch, query: "" }
-          : oceanSearch,
+      coastline: {
+        ...coastlineSearchBase,
+        query: normalizedQuery,
+      },
+      ocean: {
+        ...oceanSearchBase,
+        query: normalizedQuery,
+      },
     };
   }, [
-    coastlineDaysBack,
-    coastlinePage,
-    coastlineQuery,
-    coastlineRadiusKm,
-    oceanDaysBack,
-    oceanPage,
-    oceanQuery,
-    oceanRadiusKm,
+    animalDaysBack,
+    animalQuery,
+    animalRadiusKm,
     plannerState.activityId,
     selectedLocation,
   ]);
@@ -283,22 +277,6 @@ export function App() {
     queryFn: () => fetchInaturalistAnimalSightingGroups(animalSearches.coastline),
   });
 
-  const oceanGroupsQuery = useQuery({
-    enabled: Boolean(animalSearches.ocean),
-    queryKey: [
-      "inaturalist-animal-sighting-groups",
-      animalSearches.ocean.activityId,
-      animalSearches.ocean.searchArea,
-      animalSearches.ocean.center.latitude,
-      animalSearches.ocean.center.longitude,
-      animalSearches.ocean.dateEnd,
-      animalSearches.ocean.daysBack,
-      animalSearches.ocean.query,
-      animalSearches.ocean.radiusKm,
-    ],
-    queryFn: () => fetchInaturalistAnimalSightingGroups(animalSearches.ocean),
-  });
-
   const coastlineSightingsQuery = useQuery({
     enabled: Boolean(animalSearches.coastline),
     queryKey: [
@@ -309,7 +287,6 @@ export function App() {
       animalSearches.coastline.center.longitude,
       animalSearches.coastline.dateEnd,
       animalSearches.coastline.daysBack,
-      animalSearches.coastline.page,
       animalSearches.coastline.query,
       animalSearches.coastline.radiusKm,
     ],
@@ -326,7 +303,6 @@ export function App() {
       animalSearches.ocean.center.longitude,
       animalSearches.ocean.dateEnd,
       animalSearches.ocean.daysBack,
-      animalSearches.ocean.page,
       animalSearches.ocean.query,
       animalSearches.ocean.radiusKm,
     ],
@@ -358,21 +334,49 @@ export function App() {
     [plannerState.activityId],
   );
 
-  const mapSightings = useMemo(() => {
+  const combinedAllSightings = useMemo(() => {
     const deduped = new Map<number, AnimalSighting>();
 
-    for (const sighting of oceanSightingsQuery.data?.sightings ?? []) {
+    // Keep coastline records when the same observation appears in both areas.
+    for (const sighting of coastlineSightingsQuery.data?.allSightings ?? []) {
       deduped.set(sighting.id, sighting);
     }
 
-    for (const sighting of coastlineSightingsQuery.data?.sightings ?? []) {
+    for (const sighting of oceanSightingsQuery.data?.allSightings ?? []) {
       if (!deduped.has(sighting.id)) {
         deduped.set(sighting.id, sighting);
       }
     }
 
     return Array.from(deduped.values());
-  }, [coastlineSightingsQuery.data?.sightings, oceanSightingsQuery.data?.sightings]);
+  }, [coastlineSightingsQuery.data?.allSightings, oceanSightingsQuery.data?.allSightings]);
+
+  const combinedSightingPage = useMemo(() => {
+    const perPage = 4;
+    const page = Math.max(animalPage, 1);
+    const pageStart = (page - 1) * perPage;
+
+    return {
+      allSightings: combinedAllSightings,
+      page,
+      perPage,
+      search: animalSearches.coastline,
+      sightings: combinedAllSightings.slice(pageStart, pageStart + perPage),
+      sourceName:
+        coastlineSightingsQuery.data?.sourceName ??
+        oceanSightingsQuery.data?.sourceName ??
+        "iNaturalist",
+      totalResults: combinedAllSightings.length,
+    };
+  }, [
+    animalPage,
+    animalSearches.coastline,
+    coastlineSightingsQuery.data?.sourceName,
+    combinedAllSightings,
+    oceanSightingsQuery.data?.sourceName,
+  ]);
+
+  const mapSightings = combinedSightingPage.sightings;
 
   const formattedDate = useMemo(
     () =>
@@ -393,8 +397,7 @@ export function App() {
   }, [plannerState.activityId, plannerState.date, plannerState.locationId]);
 
   useEffect(() => {
-    setCoastlinePage(1);
-    setOceanPage(1);
+    setAnimalPage(1);
   }, [plannerState.activityId, plannerState.locationId]);
 
   useEffect(() => {
@@ -528,46 +531,29 @@ export function App() {
                   <div className="planner-sightings-subsection">
                     <AnimalSightingsPanel
                       activityId={plannerState.activityId}
-                      coastlineArea={{
-                        daysBack: coastlineDaysBack,
-                        errorMessage:
-                          coastlineGroupsQuery.error instanceof Error
-                            ? coastlineGroupsQuery.error.message
-                            : coastlineSightingsQuery.error instanceof Error
-                              ? coastlineSightingsQuery.error.message
-                              : undefined,
-                        groupReport: coastlineGroupsQuery.data,
-                        isGroupsLoading: coastlineGroupsQuery.isLoading,
-                        isSightingsLoading: coastlineSightingsQuery.isLoading,
-                        onDaysBackChange: setCoastlineDaysBack,
-                        onPageChange: setCoastlinePage,
-                        onQueryChange: setCoastlineQuery,
-                        onRadiusKmChange: setCoastlineRadiusKm,
-                        page: coastlinePage,
-                        query: coastlineQuery,
-                        radiusKm: coastlineRadiusKm,
-                        sightingPage: coastlineSightingsQuery.data,
-                      }}
-                      oceanArea={{
-                        daysBack: oceanDaysBack,
-                        errorMessage:
-                          oceanGroupsQuery.error instanceof Error
-                            ? oceanGroupsQuery.error.message
+                      daysBack={animalDaysBack}
+                      errorMessage={
+                        coastlineGroupsQuery.error instanceof Error
+                          ? coastlineGroupsQuery.error.message
+                          : coastlineSightingsQuery.error instanceof Error
+                            ? coastlineSightingsQuery.error.message
                             : oceanSightingsQuery.error instanceof Error
                               ? oceanSightingsQuery.error.message
-                              : undefined,
-                        groupReport: oceanGroupsQuery.data,
-                        isGroupsLoading: oceanGroupsQuery.isLoading,
-                        isSightingsLoading: oceanSightingsQuery.isLoading,
-                        onDaysBackChange: setOceanDaysBack,
-                        onPageChange: setOceanPage,
-                        onQueryChange: setOceanQuery,
-                        onRadiusKmChange: setOceanRadiusKm,
-                        page: oceanPage,
-                        query: oceanQuery,
-                        radiusKm: oceanRadiusKm,
-                        sightingPage: oceanSightingsQuery.data,
-                      }}
+                              : undefined
+                      }
+                      groupReport={coastlineGroupsQuery.data}
+                      isGroupsLoading={coastlineGroupsQuery.isLoading}
+                      isSightingsLoading={
+                        coastlineSightingsQuery.isLoading || oceanSightingsQuery.isLoading
+                      }
+                      onDaysBackChange={setAnimalDaysBack}
+                      onPageChange={setAnimalPage}
+                      onQueryChange={setAnimalQuery}
+                      onRadiusKmChange={setAnimalRadiusKm}
+                      page={animalPage}
+                      query={animalQuery}
+                      radiusKm={animalRadiusKm}
+                      sightingPage={combinedSightingPage}
                     />
                   </div>
 

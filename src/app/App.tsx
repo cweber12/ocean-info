@@ -427,7 +427,7 @@ export function App() {
               </div>
               <div className="brand-copy">
                 <div className="brand-heading">
-                  <h1 className="header-title">Tide Guide</h1>
+                  <h1 className="header-title">Ocean Planner</h1>
                 </div>
                 <p className="header-intro">
                   Compare local tide, wind, and water conditions by activity,

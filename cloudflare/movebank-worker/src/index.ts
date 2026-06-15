@@ -355,7 +355,7 @@ async function fetchTracks({
     const response = await fetch(upstreamUrl, {
       headers: {
         authorization: authHeader,
-        "user-agent": request.headers.get("user-agent") ?? "TideGuideMovebankWorker/1.0",
+        "user-agent": request.headers.get("user-agent") ?? "OceanPlannerMovebankWorker/1.0",
       },
     });
 

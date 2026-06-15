@@ -82,7 +82,7 @@ function buildPredictionUrl({
     time_zone: "lst_ldt",
     interval,
     units: "english",
-    application: "TideGuide",
+    application: "OceanPlanner",
     format: "json",
   });
 

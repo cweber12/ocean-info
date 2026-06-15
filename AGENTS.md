@@ -2,7 +2,7 @@
 
 ## Project Intent
 
-Tide Guide is a static React application for comparing Southern California ocean conditions by activity, location, and date. The initial coastline scope is San Diego through Oceanside.
+Ocean Planner is a static React application for comparing Southern California ocean conditions by activity, location, and date. The initial coastline scope is San Diego through Oceanside.
 
 ## Current Architecture Decision
 

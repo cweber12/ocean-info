@@ -186,7 +186,7 @@ function buildCoopsUrl({
     product,
     time_zone: "lst_ldt",
     units: "english",
-    application: "TideGuide",
+    application: "OceanPlanner",
     format: "json",
   });
 

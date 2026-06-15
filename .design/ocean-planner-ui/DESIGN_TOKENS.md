@@ -1,4 +1,4 @@
-# Design Tokens: Tide Guide UI
+# Design Tokens: Ocean Planner UI
 
 ## Output
 
@@ -6,7 +6,7 @@ The implementation token file is `src/app/tokens.css`.
 
 ## Philosophy
 
-The tokens are derived from the revised Tide Guide direction: a professional coastal field guide with restrained moon and ocean warmth.
+The tokens are derived from the revised Ocean Planner direction: a professional coastal field guide with restrained moon and ocean warmth.
 
 ## Design Choices
 

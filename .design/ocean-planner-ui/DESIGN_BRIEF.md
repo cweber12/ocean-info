@@ -1,4 +1,4 @@
-# Design Brief: Tide Guide UI
+# Design Brief: Ocean Planner UI
 
 ## Problem
 
@@ -12,7 +12,7 @@ The interface acts as a polished coastal planning guide. A user chooses a locati
 
 The UI should translate raw coastal data into practical planning language first, with deeper source details available after the main answer is clear.
 
-The page/product name should be **Tide Guide**. It is more relevant to the theme than "Ocean Info" while sounding useful, calm, credible, and concise.
+The page/product name should be **Ocean Planner**. It is more relevant to the theme than "Ocean Info" while sounding useful, calm, credible, and concise.
 
 ## Experience Principles
 
@@ -29,7 +29,7 @@ The page/product name should be **Tide Guide**. It is more relevant to the theme
 
 ### Redesign Requirements
 
-- **Page name**: Use `Tide Guide`, not `Ocean Info` or `Moon Tide Guide`.
+- **Page name**: Use `Ocean Planner`, not `Ocean Info` or `Moon Ocean Planner`.
 - **Header planner**: Move the location/date planner controls into the main header. Omit the current rail intro copy, and do not put the planner controls in a card-like background.
 - **Activity navigation**: Replace the activity card grid with a left sidebar of clickable text activity options. The selected activity's recommendation, windows, conditions, and notes display to the right.
 - **Page atmosphere**: Use a sunset-themed top region with ocean blue underneath. The effect should feel polished and spacious, not decorative or busy.
@@ -71,7 +71,7 @@ The current scaffold is a simple Vite + React + TypeScript static app.
 - Activity selection happens in a left text sidebar and changes the interpretation of the same data. For example, a low tide can be excellent for tidepools and less important for beach day.
 - Cautions should be light on the initial page: show a small icon button with plain label text for assistive technology, then reveal caution details in a popover.
 - Details should progressively disclose source-level information without overwhelming first-time users.
-- The brand/header should immediately communicate `Tide Guide` and feel credible enough for planning real coastal outings.
+- The brand/header should immediately communicate `Ocean Planner` and feel credible enough for planning real coastal outings.
 
 ## Responsive Behavior
 

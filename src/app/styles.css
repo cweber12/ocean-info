@@ -128,6 +128,25 @@ h3 {
   filter: drop-shadow(0 1px 4px rgb(4 28 35 / 40%));
 }
 
+.weather-summary--state {
+  max-width: 18rem;
+}
+
+.weather-summary-state {
+  justify-self: start;
+}
+
+.weather-summary .report-value--empty {
+  color: inherit;
+  font-size: inherit;
+}
+
+.weather-summary .report-value-empty-chip {
+  color: rgb(248 255 252 / 0.92);
+  background: rgb(8 43 52 / 22%);
+  border-color: rgb(248 255 252 / 18%);
+}
+
 .weather-summary-forecast {
   color: rgba(204, 231, 225, 0.96);
 }
@@ -1966,6 +1985,35 @@ button:focus-visible {
     line-height: var(--line-height-normal);
   }
 
+  .report-value {
+    min-height: 1.9rem;
+  }
+
+  .report-value--empty {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+  }
+
+  .report-value-empty-chip {
+    width: fit-content;
+    min-height: 1.9rem;
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    padding: 0 var(--space-3);
+    color: color-mix(in srgb, var(--color-text-secondary) 88%, var(--color-text-primary));
+    background: color-mix(in srgb, var(--surface-subtle) 88%, var(--color-bg-secondary));
+    border: 1px solid var(--rule-hairline);
+    border-radius: var(--border-radius-full);
+  }
+
+  .report-value-empty-chip svg {
+    flex: 0 0 auto;
+    color: var(--color-text-tertiary);
+  }
+
   .tide-events-heading small {
     color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
@@ -2035,67 +2083,114 @@ button:focus-visible {
   text-align: center;
 }
 
-.tide-chart {
+.report-state {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+  text-align: center;
+}
+
+.report-state--compact {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+  justify-items: start;
+  text-align: left;
+}
+
+.report-state-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--color-accent-activity) 54%, var(--color-text-tertiary));
+  background: color-mix(in srgb, var(--color-accent-activity-soft) 52%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent-activity) 18%, var(--rule-hairline));
+  border-radius: 50%;
+}
+
+.report-state--compact .report-state-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.report-state-copy {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.report-state-copy strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-tight);
+}
+
+.report-state-copy small {
+  max-width: 22rem;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.mini-chart {
   display: block;
   width: 100%;
-  height: 15rem;
+  height: 14rem;
   overflow: visible;
 }
 
-.wind-chart {
-  display: block;
-  width: 100%;
-  height: 15rem;
-  overflow: visible;
+.mini-chart text {
+  fill: var(--color-text-tertiary);
+  font-family: var(--font-family-body);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-bold);
 }
 
-.wave-chart {
-  display: block;
-  width: 100%;
-  height: 15rem;
-  overflow: visible;
+.mini-chart-axis-label {
+  fill: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.02em;
 }
 
-.tide-report[data-variant="feature"] .tide-chart {
-  height: 15rem;
+.mini-chart-grid-line,
+.mini-chart-tick-mark {
+  stroke: color-mix(in srgb, var(--color-border-primary) 70%, transparent);
+  stroke-width: 1;
 }
 
-.tide-chart-area {
-  opacity: 0.32;
+.mini-chart-grid-row:not([data-emphasis="baseline"]) .mini-chart-grid-line {
+  stroke-dasharray: 4 8;
 }
 
-.wind-chart-area {
-  opacity: 0.28;
+.mini-chart-grid-row[data-emphasis="baseline"] .mini-chart-grid-line {
+  stroke: color-mix(in srgb, var(--color-border-primary) 88%, transparent);
+}
+
+.tide-chart-area,
+.wind-chart-area,
+.wave-chart-fill {
+  opacity: 0.3;
 }
 
 .tide-chart-gradient-top {
-  stop-color: color-mix(in srgb, var(--color-chart-orange) 50%, var(--color-bg-secondary));
-  stop-opacity: 0.58;
-}
-
-.tide-chart-gradient-bottom {
-  stop-color: var(--color-surface-glass-strong);
-  stop-opacity: 0.08;
-}
-
-.wind-chart-gradient-top {
   stop-color: color-mix(in srgb, var(--color-chart-orange) 48%, var(--color-bg-secondary));
-  stop-opacity: 0.48;
+  stop-opacity: 0.56;
 }
 
+.tide-chart-gradient-bottom,
 .wind-chart-gradient-bottom {
   stop-color: var(--color-surface-glass-strong);
   stop-opacity: 0.08;
 }
 
-.tide-chart-line {
-  fill: none;
-  stroke: var(--color-chart-orange);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 3.5;
+.wind-chart-gradient-top {
+  stop-color: color-mix(in srgb, var(--color-chart-orange) 44%, var(--color-accent-activity-soft));
+  stop-opacity: 0.46;
 }
 
+.tide-chart-line,
+.wave-chart-line,
 .wind-chart-speed-line,
 .wind-chart-gust-line {
   fill: none;
@@ -2103,139 +2198,58 @@ button:focus-visible {
   stroke-linejoin: round;
 }
 
+.tide-chart-line,
+.wave-chart-line,
 .wind-chart-speed-line {
   stroke: var(--color-chart-orange);
-  stroke-width: 3.5;
+  stroke-width: 3.25;
 }
 
 .wind-chart-gust-line {
-  stroke: var(--color-chart-orange-deep);
-  opacity: 0.62;
-  stroke-width: 3;
+  stroke: color-mix(in srgb, var(--color-chart-orange-deep) 86%, var(--color-text-secondary));
+  opacity: 0.76;
+  stroke-dasharray: 9 9;
+  stroke-width: 2.4;
 }
 
-.tide-chart-axis {
-  stroke: var(--color-border-primary);
+.wave-chart-fill {
+  fill: color-mix(in srgb, var(--color-chart-orange) 72%, var(--color-bg-secondary));
+}
+
+.tide-chart-event-stem {
+  stroke: color-mix(in srgb, var(--color-chart-orange) 24%, transparent);
+  stroke-dasharray: 4 7;
   stroke-width: 1;
-}
-
-.wind-chart-axis {
-  stroke: var(--color-border-primary);
-  stroke-width: 1;
-}
-
-.wave-chart-axis {
-  stroke: var(--color-border-primary);
-  stroke-width: 1;
-}
-
-.tide-chart-x-tick line,
-.tide-chart-y-tick line,
-.wind-chart-x-tick line,
-.wind-chart-y-tick line,
-.wave-chart-y-tick line {
-  stroke: color-mix(in srgb, var(--color-border-primary) 72%, transparent);
-  stroke-width: 1;
-}
-
-.tide-chart-y-tick line,
-.wind-chart-y-tick line,
-.wave-chart-y-tick line {
-  stroke-dasharray: 4 8;
 }
 
 .tide-chart-event circle {
   fill: var(--color-bg-secondary);
   stroke: var(--color-chart-orange);
-  stroke-width: 3;
+  stroke-width: 2.6;
 }
 
 .tide-chart-event[data-type="low"] circle {
   stroke: var(--color-chart-orange-deep);
 }
 
-.tide-chart text {
-  fill: var(--color-text-tertiary);
-  font-family: var(--font-family-body);
-  font-size: 0.75rem;
-  font-weight: var(--font-weight-bold);
+.wind-chart-direction circle,
+.wave-chart-direction circle {
+  fill: color-mix(in srgb, var(--color-bg-secondary) 84%, transparent);
+  stroke: color-mix(in srgb, var(--color-border-primary) 78%, transparent);
+  stroke-width: 1;
 }
 
-.wind-chart text {
-  fill: var(--color-text-tertiary);
-  font-family: var(--font-family-body);
-  font-size: 0.75rem;
-  font-weight: var(--font-weight-bold);
+.wind-chart-direction path,
+.wave-chart-direction path {
+  fill: color-mix(in srgb, var(--color-accent-activity) 58%, var(--color-chart-orange));
 }
 
-.wave-chart text {
-  fill: var(--color-text-tertiary);
-  font-family: var(--font-family-body);
-  font-size: 0.84rem;
-  font-weight: var(--font-weight-bold);
-}
-
-.tide-chart text,
-.wind-chart text {
-  font-size: 0.84rem;
-}
-
-.tide-chart-axis-label,
-.wind-chart-axis-label,
-.wave-chart-axis-label {
-  fill: var(--color-text-secondary);
-  font-size: 0.8rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.01em;
-}
-
-.wave-chart-bar-fill {
-  fill: color-mix(in srgb, var(--color-chart-orange) 86%, var(--color-bg-secondary));
-  opacity: 0.78;
-}
-
-.tide-report[data-variant="compact"] .tide-chart text {
-  font-size: 0.68rem;
-}
-
-.tide-chart-empty {
-  min-height: 13rem;
-  display: grid;
-  place-items: center;
-  color: var(--color-text-secondary);
-  text-align: center;
-}
-
+.tide-chart-empty,
 .weather-chart-empty {
   min-height: 13rem;
   display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: var(--space-2);
+  place-items: center;
   padding: var(--space-5);
-  color: var(--color-text-secondary);
-  text-align: center;
-}
-
-.weather-chart-empty span {
-  width: 0.55rem;
-  height: 0.55rem;
-  background: color-mix(in srgb, var(--color-chart-orange) 72%, var(--color-bg-secondary));
-  border-radius: 50%;
-  opacity: 0.72;
-}
-
-.weather-chart-empty strong {
-  color: var(--color-text-primary);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-tight);
-}
-
-.weather-chart-empty small {
-  max-width: 18rem;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-normal);
 }
 
 .condition-card {

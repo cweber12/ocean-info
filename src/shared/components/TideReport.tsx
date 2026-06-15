@@ -1,10 +1,18 @@
 import { useId } from "react";
+import { CircleDashed, LoaderCircle, TriangleAlert, Waves } from "lucide-react";
 import type { ActivityId } from "../../activities";
 import type {
   TideChartPoint,
   TidePrediction,
   TideReport as TideReportData,
 } from "../../domain/tide/types";
+import {
+  emptyValue,
+  filledValue,
+  ReportState,
+  ReportValueText,
+  type ReportValue,
+} from "./ReportState";
 
 export interface TideReportProps {
   activityId: ActivityId;
@@ -14,6 +22,12 @@ export interface TideReportProps {
 }
 
 type TideReportVariant = "compact" | "feature";
+
+const miniChartDimensions = {
+  height: 236,
+  padding: { bottom: 38, left: 56, right: 18, top: 18 },
+  width: 720,
+} as const;
 
 export function TideReport({
   activityId,
@@ -29,7 +43,13 @@ export function TideReport({
         <h2 id="tide-report-heading" className="sr-only">
           Tide report
         </h2>
-        <div className="tide-loading">Loading NOAA tide predictions...</div>
+        <div className="tide-loading">
+          <ReportState
+            detail="Pulling NOAA predictions for the selected station."
+            icon={LoaderCircle}
+            title="Loading tide report"
+          />
+        </div>
       </section>
     );
   }
@@ -41,7 +61,11 @@ export function TideReport({
           Tide report
         </h2>
         <div className="tide-error">
-          Tide predictions are unavailable for this station right now.
+          <ReportState
+            detail="NOAA did not return predictions for this station right now."
+            icon={TriangleAlert}
+            title="Tide report unavailable"
+          />
         </div>
       </section>
     );
@@ -72,31 +96,43 @@ export function TideReport({
 
           <div className="api-data-card-chart">
             <TideChart
-              points={report.chart}
               events={report.highLow}
+              points={report.chart}
               xAxisLabel="Local time"
               xTickIntervalHours={variant === "feature" ? 4 : 6}
-              yAxisLabel="Tide height (ft)"
+              yAxisLabel="Tide height"
             />
           </div>
 
           <div className="api-data-card-content">
             <div className="tide-stat-grid">
               <TideStat
+                detail={lowestLow ? formatTime(lowestLow.at) : "Prediction unavailable"}
                 label={variant === "feature" ? "Lowest tide" : "Next low"}
-                value={lowestLow ? formatHeight(lowestLow.heightFeet) : "No low"}
-                detail={lowestLow ? formatTime(lowestLow.at) : "Unavailable"}
+                value={
+                  lowestLow
+                    ? filledValue(formatHeight(lowestLow.heightFeet))
+                    : emptyValue(Waves, "No low")
+                }
               />
               <TideStat
+                detail={highestHigh ? formatTime(highestHigh.at) : "Prediction unavailable"}
                 label={variant === "feature" ? "Highest tide" : "Next high"}
-                value={highestHigh ? formatHeight(highestHigh.heightFeet) : "No high"}
-                detail={highestHigh ? formatTime(highestHigh.at) : "Unavailable"}
+                value={
+                  highestHigh
+                    ? filledValue(formatHeight(highestHigh.heightFeet))
+                    : emptyValue(Waves, "No high")
+                }
               />
               {variant !== "compact" ? (
                 <TideStat
-                  label="Daily range"
-                  value={chartSummary ? formatHeight(chartSummary.rangeFeet) : "No data"}
                   detail="Predicted spread"
+                  label="Daily range"
+                  value={
+                    chartSummary
+                      ? filledValue(formatHeight(chartSummary.rangeFeet))
+                      : emptyValue(Waves, "No range")
+                  }
                 />
               ) : null}
             </div>
@@ -141,12 +177,18 @@ function TideChart({
   yAxisLabel: string;
 }) {
   const gradientId = `tide-chart-gradient-${useId().replace(/:/g, "")}`;
-  const width = 720;
-  const height = 280;
-  const padding = { bottom: 44, left: 64, right: 22, top: 20 };
+  const { height, padding, width } = miniChartDimensions;
 
   if (points.length === 0) {
-    return <div className="tide-chart-empty">No chart points available.</div>;
+    return (
+      <div className="tide-chart-empty">
+        <ReportState
+          detail="NOAA did not return curve points for this day."
+          icon={CircleDashed}
+          title="No tide chart data"
+        />
+      </div>
+    );
   }
 
   const heights = points.map((point) => point.heightFeet);
@@ -161,33 +203,29 @@ function TideChart({
   const plotWidth = width - padding.left - padding.right;
   const coordinates = points.map((point) => {
     const pointMinute = getChartMinute(point.at);
-    const x =
-      padding.left +
-      ((pointMinute - startMinute) / minuteRange) * plotWidth;
-    const y =
-      plotBottom - ((point.heightFeet - minHeight) / range) * plotHeight;
+    const x = padding.left + ((pointMinute - startMinute) / minuteRange) * plotWidth;
+    const y = plotBottom - ((point.heightFeet - minHeight) / range) * plotHeight;
 
     return { ...point, x, y };
   });
 
   const linePath = buildSmoothPath(coordinates);
   const areaPath = `${linePath} L ${coordinates[coordinates.length - 1].x} ${plotBottom} L ${coordinates[0].x} ${plotBottom} Z`;
-  const timeTicks = getTimeTicks(startMinute, endMinute, xTickIntervalHours).map(
-    (minute) => ({
-      label: formatChartHour(minute),
-      x: padding.left + ((minute - startMinute) / minuteRange) * plotWidth,
-    }),
-  );
-  const yTicks = getHeightTicks(minHeight, maxHeight).map((heightFeet) => ({
+  const timeTicks = getTimeTicks(startMinute, endMinute, xTickIntervalHours).map((minute) => ({
+    label: formatChartHour(minute),
+    x: padding.left + ((minute - startMinute) / minuteRange) * plotWidth,
+  }));
+  const yTicks = getHeightTicks(minHeight, maxHeight).map((heightFeet, index, tickValues) => ({
+    emphasis: index === tickValues.length - 1,
     heightFeet,
     y: plotBottom - ((heightFeet - minHeight) / range) * plotHeight,
   }));
 
   return (
     <svg
-      className="tide-chart"
+      className="mini-chart tide-chart"
       role="img"
-      aria-label="Predicted tide height chart for the selected date"
+      aria-label={buildTideChartLabel(events, maxHeight, minHeight)}
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
     >
@@ -204,9 +242,15 @@ function TideChart({
           <stop className="tide-chart-gradient-bottom" offset="100%" />
         </linearGradient>
       </defs>
+
       {yTicks.map((tick) => (
-        <g className="tide-chart-y-tick" key={tick.heightFeet}>
+        <g
+          className="mini-chart-grid-row"
+          data-emphasis={tick.emphasis ? "baseline" : undefined}
+          key={tick.heightFeet}
+        >
           <line
+            className="mini-chart-grid-line"
             x1={padding.left}
             x2={width - padding.right}
             y1={tick.y}
@@ -217,46 +261,48 @@ function TideChart({
           </text>
         </g>
       ))}
-      <path className="tide-chart-area" d={areaPath} style={{ fill: `url(#${gradientId})` }} />
-      <path className="tide-chart-line" d={linePath} />
-      <line
-        className="tide-chart-axis"
-        x1={padding.left}
-        x2={width - padding.right}
-        y1={plotBottom}
-        y2={plotBottom}
+
+      <path
+        className="tide-chart-area"
+        d={areaPath}
+        style={{ fill: `url(#${gradientId})` }}
       />
-      <text
-        className="tide-chart-axis-label tide-chart-axis-label-y"
-        x={20}
-        y={height / 2}
-        textAnchor="middle"
-        transform={`rotate(-90 20 ${height / 2})`}
-      >
-        {yAxisLabel}
-      </text>
+      <path className="tide-chart-line" d={linePath} />
+
       {timeTicks.map((tick) => (
-        <g className="tide-chart-x-tick" key={tick.label}>
-          <line x1={tick.x} x2={tick.x} y1={plotBottom} y2={plotBottom + 5} />
+        <g className="mini-chart-x-tick" key={tick.label}>
+          <line
+            className="mini-chart-tick-mark"
+            x1={tick.x}
+            x2={tick.x}
+            y1={plotBottom}
+            y2={plotBottom + 5}
+          />
           <text x={tick.x} y={height - 8} textAnchor="middle">
             {tick.label}
           </text>
         </g>
       ))}
+
+      <text className="mini-chart-axis-label" x={padding.left} y={14} textAnchor="start">
+        {yAxisLabel}
+      </text>
       <text
-        className="tide-chart-axis-label tide-chart-axis-label-x"
+        className="mini-chart-axis-label"
         x={padding.left + plotWidth / 2}
         y={height - 2}
         textAnchor="middle"
       >
         {xAxisLabel}
       </text>
+
       {events.slice(0, 4).map((event) => {
         const point = getNearestChartPoint(event.at, coordinates);
 
         return point ? (
           <g className="tide-chart-event" data-type={event.type} key={`${event.at}-${event.type}`}>
-            <circle cx={point.x} cy={point.y} r="5" />
+            <line className="tide-chart-event-stem" x1={point.x} x2={point.x} y1={point.y} y2={plotBottom} />
+            <circle cx={point.x} cy={point.y} r="4.5" />
           </g>
         ) : null;
       })}
@@ -271,12 +317,12 @@ function TideStat({
 }: {
   detail: string;
   label: string;
-  value: string;
+  value: ReportValue;
 }) {
   return (
     <div className="tide-stat">
       <span>{label}</span>
-      <strong>{value}</strong>
+      <ReportValueText value={value} />
       <small>{detail}</small>
     </div>
   );
@@ -377,12 +423,15 @@ function getTimeTicks(
   intervalHours: number,
 ): number[] {
   const intervalMinutes = intervalHours * 60;
-  const firstTick =
-    Math.ceil(startMinute / intervalMinutes) * intervalMinutes;
+  const firstTick = Math.ceil(startMinute / intervalMinutes) * intervalMinutes;
   const ticks: number[] = [];
 
   for (let minute = firstTick; minute <= endMinute; minute += intervalMinutes) {
     ticks.push(minute);
+  }
+
+  if (ticks[ticks.length - 1] !== endMinute) {
+    ticks.push(endMinute);
   }
 
   return ticks;
@@ -424,4 +473,18 @@ function formatTime(localTime: string): string {
   const displayHour = hour % 12 || 12;
 
   return `${displayHour}:${minute} ${period}`;
+}
+
+function buildTideChartLabel(
+  events: TidePrediction[],
+  maxHeight: number,
+  minHeight: number,
+): string {
+  const nextEvent = events[0];
+
+  if (!nextEvent) {
+    return `Predicted tide range from ${formatHeight(minHeight)} to ${formatHeight(maxHeight)}.`;
+  }
+
+  return `Predicted tide range from ${formatHeight(minHeight)} to ${formatHeight(maxHeight)}. Next ${nextEvent.type} at ${formatTime(nextEvent.at)}.`;
 }

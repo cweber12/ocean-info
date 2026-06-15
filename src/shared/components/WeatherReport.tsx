@@ -1,8 +1,12 @@
 import { useId } from "react";
 import {
+  CircleDashed,
+  CloudOff,
   CloudSun,
   Compass,
   Droplets,
+  LoaderCircle,
+  TriangleAlert,
   Waves,
   Wind,
 } from "lucide-react";
@@ -11,6 +15,13 @@ import type {
   HourlyWeatherPoint,
   MarineWeatherReport as MarineWeatherReportData,
 } from "../../domain/weather/types";
+import {
+  emptyValue,
+  filledValue,
+  ReportState,
+  ReportValueText,
+  type ReportValue,
+} from "./ReportState";
 
 export interface HeaderWeatherSummaryProps {
   isLoading: boolean;
@@ -26,8 +37,14 @@ interface WeatherStat {
   detail: string;
   icon: typeof Wind;
   label: string;
-  value: string;
+  value: ReportValue;
 }
+
+const miniChartDimensions = {
+  height: 236,
+  padding: { bottom: 38, left: 56, right: 18, top: 18 },
+  width: 720,
+} as const;
 
 export function HeaderWeatherSummary({
   isLoading,
@@ -35,17 +52,28 @@ export function HeaderWeatherSummary({
 }: HeaderWeatherSummaryProps) {
   if (isLoading) {
     return (
-      <div className="weather-summary" aria-live="polite">
-        <span>Loading weather</span>
+      <div className="weather-summary weather-summary--state" aria-live="polite">
+        <ReportState
+          className="weather-summary-state"
+          detail="Fetching NOAA weather"
+          icon={LoaderCircle}
+          title="Loading weather"
+          variant="compact"
+        />
       </div>
     );
   }
 
   if (!report?.summary) {
     return (
-      <div className="weather-summary" aria-live="polite">
-        <CloudSun aria-hidden="true" size={18} strokeWidth={2.2} />
-        <span>Weather unavailable</span>
+      <div className="weather-summary weather-summary--state" aria-live="polite">
+        <ReportState
+          className="weather-summary-state"
+          detail="No coastal forecast returned"
+          icon={CloudOff}
+          title="Weather unavailable"
+          variant="compact"
+        />
       </div>
     );
   }
@@ -54,14 +82,17 @@ export function HeaderWeatherSummary({
     <div className="weather-summary" aria-label="Weather summary">
       <span>
         <CloudSun aria-hidden="true" size={18} strokeWidth={2.2} />
-        {formatTemperature(report.summary.temperatureFahrenheit)}
+        <ReportValueText as="span" value={formatTemperatureValue(report.summary.temperatureFahrenheit)} />
       </span>
       <span>
         <Wind aria-hidden="true" size={18} strokeWidth={2.2} />
-        {formatWindSummary(report.summary.windDirection, report.summary.windSpeedMph)}
+        <ReportValueText
+          as="span"
+          value={formatWindSummaryValue(report.summary.windDirection, report.summary.windSpeedMph)}
+        />
       </span>
       <span className="weather-summary-forecast">
-        {report.summary.shortForecast ?? "Forecast"}
+        {report.summary.shortForecast ?? "Forecast unavailable"}
       </span>
     </div>
   );
@@ -81,7 +112,13 @@ export function MarineWeatherReport({
         <h2 id="weather-report-heading" className="sr-only">
           {content.heading}
         </h2>
-        <div className="weather-loading">Loading NOAA weather...</div>
+        <div className="weather-loading">
+          <ReportState
+            detail="Forecast grids and coastal observations are on the way."
+            icon={LoaderCircle}
+            title="Loading weather report"
+          />
+        </div>
       </section>
     );
   }
@@ -93,7 +130,11 @@ export function MarineWeatherReport({
           {content.heading}
         </h2>
         <div className="weather-error">
-          Weather data is unavailable for this location right now.
+          <ReportState
+            detail="Forecast and buoy readings are unavailable for this location right now."
+            icon={TriangleAlert}
+            title="Weather report unavailable"
+          />
         </div>
       </section>
     );
@@ -125,7 +166,7 @@ export function MarineWeatherReport({
             <WindForecastChart
               points={report.hourlyForecast}
               xAxisLabel="Local time"
-              yAxisLabel="Wind (kt)"
+              yAxisLabel="Wind speed"
             />
           </div>
 
@@ -184,134 +225,138 @@ function WeatherStatCard({ stat }: { stat: WeatherStat }) {
         <Icon aria-hidden="true" size={16} strokeWidth={2.2} />
         {stat.label}
       </span>
-      <strong>{stat.value}</strong>
+      <ReportValueText value={stat.value} />
       <small>{stat.detail}</small>
     </div>
   );
 }
 
 function WaveObservationChart({ report }: { report: MarineWeatherReportData }) {
-  const width = 720;
-  const height = 220;
-  const padding = { bottom: 48, left: 58, right: 26, top: 22 };
   const observation = report.waveObservation;
+  const { height, padding, width } = miniChartDimensions;
 
   if (!observation) {
     return (
       <ChartEmptyState
-        detail="Latest water readings are still shown when available."
+        detail="Latest water readings still appear below when available."
+        icon={CircleDashed}
         title="No wave chart data"
       />
     );
   }
 
-  const metrics = [
-    {
-      label: "Height",
-      value: observation.heightFeet,
-      max: 12,
-      unit: "ft",
-    },
-    {
-      label: "Period",
-      value: observation.periodSeconds,
-      max: 20,
-      unit: "sec",
-    },
-    {
-      label: "Direction",
-      value: observation.directionDegrees,
-      max: 360,
-      unit: "deg",
-    },
-  ].filter((metric) => metric.value !== undefined);
+  const hasWaveMetric =
+    observation.heightFeet !== undefined ||
+    observation.periodSeconds !== undefined ||
+    observation.directionDegrees !== undefined;
 
-  if (metrics.length === 0) {
+  if (!hasWaveMetric) {
     return (
       <ChartEmptyState
         detail="The selected buoy did not report height, period, or direction."
+        icon={CircleDashed}
         title="No wave chart data"
       />
     );
   }
 
+  const cycleSeconds = Math.max(observation.periodSeconds ?? 12, 6);
+  const waveHeight = Math.max(observation.heightFeet ?? 4, 1);
   const plotBottom = height - padding.bottom;
-  const plotTop = padding.top;
-  const plotHeight = plotBottom - plotTop;
+  const plotHeight = height - padding.top - padding.bottom;
   const plotWidth = width - padding.left - padding.right;
-  const slotWidth = plotWidth / metrics.length;
-  const barWidth = Math.min(72, slotWidth * 0.44);
-  const axisTicks = [1, 0.75, 0.5, 0.25, 0];
+  const cyclePoints = Array.from({ length: 33 }, (_, index) => {
+    const progress = index / 32;
+    const phase = progress * Math.PI * 2 - Math.PI / 2;
+    const relativeHeight = ((Math.sin(phase) + 1) / 2) * waveHeight;
+
+    return {
+      x: padding.left + progress * plotWidth,
+      y: plotBottom - (relativeHeight / waveHeight) * plotHeight,
+    };
+  });
+  const wavePath = buildSmoothPath(cyclePoints);
+  const yTicks = [waveHeight, waveHeight * 0.66, waveHeight * 0.33, 0].map(
+    (value, index, tickValues) => ({
+      emphasis: index === tickValues.length - 1,
+      label: `${value.toFixed(value >= 10 ? 0 : 1)} ft`,
+      y: plotBottom - (value / waveHeight) * plotHeight,
+    }),
+  );
+  const xTicks = [0, cycleSeconds / 2, cycleSeconds].map((value) => ({
+    label: `${Math.round(value)}s`,
+    x: padding.left + (value / cycleSeconds) * plotWidth,
+  }));
 
   return (
     <svg
-      className="wave-chart"
+      className="mini-chart wave-chart"
       role="img"
-      aria-label="Latest wave observation chart"
+      aria-label={buildWaveChartLabel(observation)}
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
     >
-      {axisTicks.map((ratio) => {
-        const y = plotTop + (1 - ratio) * plotHeight;
+      {yTicks.map((tick) => (
+        <g
+          className="mini-chart-grid-row"
+          data-emphasis={tick.emphasis ? "baseline" : undefined}
+          key={tick.label}
+        >
+          <line
+            className="mini-chart-grid-line"
+            x1={padding.left}
+            x2={width - padding.right}
+            y1={tick.y}
+            y2={tick.y}
+          />
+          <text x={padding.left - 10} y={tick.y + 4} textAnchor="end">
+            {tick.label}
+          </text>
+        </g>
+      ))}
 
-        return (
-          <g className="wave-chart-y-tick" key={ratio}>
-            <line x1={padding.left} x2={width - padding.right} y1={y} y2={y} />
-            <text x={padding.left - 10} y={y + 4} textAnchor="end">
-              {`${Math.round(ratio * 100)}%`}
-            </text>
-          </g>
-        );
-      })}
-      {metrics.map((metric, index) => {
-        const normalized = Math.max(0, Math.min((metric.value ?? 0) / metric.max, 1));
-        const xCenter = padding.left + slotWidth * (index + 0.5);
-        const barHeight = normalized * plotHeight;
-        const y = plotBottom - barHeight;
-
-        return (
-          <g className="wave-chart-bar" key={metric.label}>
-            <rect
-              className="wave-chart-bar-fill"
-              x={xCenter - barWidth / 2}
-              y={y}
-              width={barWidth}
-              height={barHeight}
-              rx="8"
-            />
-            <text x={xCenter} y={plotBottom + 18} textAnchor="middle">
-              {metric.label}
-            </text>
-            <text x={xCenter} y={y - 8} textAnchor="middle">
-              {`${Math.round(metric.value ?? 0)} ${metric.unit}`}
-            </text>
-          </g>
-        );
-      })}
-      <line
-        className="wave-chart-axis"
-        x1={padding.left}
-        x2={width - padding.right}
-        y1={plotBottom}
-        y2={plotBottom}
+      <path className="wave-chart-line" d={wavePath} />
+      <path
+        className="wave-chart-fill"
+        d={`${wavePath} L ${width - padding.right} ${plotBottom} L ${padding.left} ${plotBottom} Z`}
       />
-      <text
-        className="wave-chart-axis-label wave-chart-axis-label-y"
-        x={22}
-        y={height / 2}
-        textAnchor="middle"
-        transform={`rotate(-90 22 ${height / 2})`}
-      >
-        Relative intensity
+
+      {xTicks.map((tick) => (
+        <g className="mini-chart-x-tick" key={tick.label}>
+          <line
+            className="mini-chart-tick-mark"
+            x1={tick.x}
+            x2={tick.x}
+            y1={plotBottom}
+            y2={plotBottom + 5}
+          />
+          <text x={tick.x} y={height - 8} textAnchor="middle">
+            {tick.label}
+          </text>
+        </g>
+      ))}
+
+      <text className="mini-chart-axis-label" x={padding.left} y={14} textAnchor="start">
+        Wave height
       </text>
       <text
-        className="wave-chart-axis-label wave-chart-axis-label-x"
+        className="mini-chart-axis-label"
         x={padding.left + plotWidth / 2}
-        y={height - 4}
+        y={height - 2}
         textAnchor="middle"
       >
-        Latest buoy observation
+        Observed cycle
       </text>
+
+      {observation.directionDegrees !== undefined ? (
+        <g
+          className="wave-chart-direction"
+          transform={`translate(${width - padding.right - 24} ${padding.top + 22}) rotate(${observation.directionDegrees})`}
+        >
+          <circle cx="0" cy="0" r="12" />
+          <path d="M 0 -7 L 4 3 L 0 1 L -4 3 Z" />
+        </g>
+      ) : null}
     </svg>
   );
 }
@@ -326,9 +371,7 @@ function WindForecastChart({
   yAxisLabel: string;
 }) {
   const gradientId = `wind-chart-gradient-${useId().replace(/:/g, "")}`;
-  const width = 720;
-  const height = 280;
-  const padding = { bottom: 44, left: 58, right: 24, top: 20 };
+  const { height, padding, width } = miniChartDimensions;
   const chartPoints = points.slice(0, 24);
   const domainStartMinute = 0;
   const domainEndMinute = 24 * 60 - 1;
@@ -337,6 +380,7 @@ function WindForecastChart({
     return (
       <ChartEmptyState
         detail="NWS did not return hourly periods for this date."
+        icon={CircleDashed}
         title="No hourly wind data"
       />
     );
@@ -352,25 +396,20 @@ function WindForecastChart({
   const plotHeight = height - padding.top - padding.bottom;
   const plotWidth = width - padding.left - padding.right;
   const coordinates = chartPoints.map((point) => {
-    const x =
-      padding.left +
-      ((getChartMinute(point.at) - domainStartMinute) / minuteRange) * plotWidth;
-    const speedY =
-      plotBottom -
-      (((point.windSpeedMph ?? 0) / maxSpeed) * plotHeight);
-    const gustY =
-      plotBottom -
-      (((point.windGustMph ?? point.windSpeedMph ?? 0) / maxSpeed) * plotHeight);
+    const x = padding.left + ((getChartMinute(point.at) - domainStartMinute) / minuteRange) * plotWidth;
+    const speedY = plotBottom - (((point.windSpeedMph ?? 0) / maxSpeed) * plotHeight);
+    const gustY = plotBottom - (((point.windGustMph ?? point.windSpeedMph ?? 0) / maxSpeed) * plotHeight);
 
     return { ...point, gustY, speedY, x };
   });
   const speedPath = buildSmoothPath(coordinates.map((point) => ({ x: point.x, y: point.speedY })));
   const gustPath = buildSmoothPath(coordinates.map((point) => ({ x: point.x, y: point.gustY })));
-  const areaPath = `${gustPath} L ${coordinates[coordinates.length - 1].x} ${plotBottom} L ${coordinates[0].x} ${plotBottom} Z`;
-  const yTicks = getSpeedTicks(maxSpeed).map((speed) => {
+  const areaPath = `${speedPath} L ${coordinates[coordinates.length - 1].x} ${plotBottom} L ${coordinates[0].x} ${plotBottom} Z`;
+  const yTicks = getSpeedTicks(maxSpeed).map((speed, index, tickValues) => {
     const knots = mphToKnots(speed);
 
     return {
+      emphasis: index === tickValues.length - 1,
       label: `${Math.round(knots)} kt`,
       y: plotBottom - (speed / maxSpeed) * plotHeight,
     };
@@ -379,12 +418,13 @@ function WindForecastChart({
     label: formatChartHour(minute),
     x: padding.left + ((minute - domainStartMinute) / minuteRange) * plotWidth,
   }));
+  const directionMarkers = getDirectionMarkers(coordinates, plotBottom);
 
   return (
     <svg
-      className="wind-chart"
+      className="mini-chart wind-chart"
       role="img"
-      aria-label="Hourly wind and gust forecast chart"
+      aria-label={buildWindChartLabel(chartPoints)}
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
     >
@@ -401,9 +441,15 @@ function WindForecastChart({
           <stop className="wind-chart-gradient-bottom" offset="100%" />
         </linearGradient>
       </defs>
+
       {yTicks.map((tick) => (
-        <g className="wind-chart-y-tick" key={tick.label}>
+        <g
+          className="mini-chart-grid-row"
+          data-emphasis={tick.emphasis ? "baseline" : undefined}
+          key={tick.label}
+        >
           <line
+            className="mini-chart-grid-line"
             x1={padding.left}
             x2={width - padding.right}
             y1={tick.y}
@@ -414,35 +460,42 @@ function WindForecastChart({
           </text>
         </g>
       ))}
+
       <path className="wind-chart-area" d={areaPath} style={{ fill: `url(#${gradientId})` }} />
       <path className="wind-chart-gust-line" d={gustPath} />
       <path className="wind-chart-speed-line" d={speedPath} />
-      <line
-        className="wind-chart-axis"
-        x1={padding.left}
-        x2={width - padding.right}
-        y1={plotBottom}
-        y2={plotBottom}
-      />
-      <text
-        className="wind-chart-axis-label wind-chart-axis-label-y"
-        x={20}
-        y={height / 2}
-        textAnchor="middle"
-        transform={`rotate(-90 20 ${height / 2})`}
-      >
-        {yAxisLabel}
-      </text>
+
+      {directionMarkers.map((marker) => (
+        <g
+          className="wind-chart-direction"
+          key={`${marker.at}-${marker.x}`}
+          transform={`translate(${marker.x} ${marker.y}) rotate(${marker.windDirectionDegrees ?? 0})`}
+        >
+          <circle cx="0" cy="0" r="10" />
+          <path d="M 0 -6 L 3.75 2.5 L 0 0.5 L -3.75 2.5 Z" />
+        </g>
+      ))}
+
       {xTicks.map((tick) => (
-        <g className="wind-chart-x-tick" key={tick.label}>
-          <line x1={tick.x} x2={tick.x} y1={plotBottom} y2={plotBottom + 5} />
+        <g className="mini-chart-x-tick" key={tick.label}>
+          <line
+            className="mini-chart-tick-mark"
+            x1={tick.x}
+            x2={tick.x}
+            y1={plotBottom}
+            y2={plotBottom + 5}
+          />
           <text x={tick.x} y={height - 8} textAnchor="middle">
             {tick.label}
           </text>
         </g>
       ))}
+
+      <text className="mini-chart-axis-label" x={padding.left} y={14} textAnchor="start">
+        {yAxisLabel}
+      </text>
       <text
-        className="wind-chart-axis-label wind-chart-axis-label-x"
+        className="mini-chart-axis-label"
         x={padding.left + plotWidth / 2}
         y={height - 2}
         textAnchor="middle"
@@ -455,16 +508,16 @@ function WindForecastChart({
 
 function ChartEmptyState({
   detail,
+  icon,
   title,
 }: {
   detail: string;
+  icon: typeof CircleDashed;
   title: string;
 }) {
   return (
     <div className="weather-chart-empty">
-      <span aria-hidden="true" />
-      <strong>{title}</strong>
-      <small>{detail}</small>
+      <ReportState detail={detail} icon={icon} title={title} />
     </div>
   );
 }
@@ -528,7 +581,7 @@ function getAirTemperatureStat(report: MarineWeatherReportData): WeatherStat {
       : report.summary?.shortForecast ?? "Forecast unavailable",
     icon: CloudSun,
     label: "Air",
-    value: formatTemperature(
+    value: formatTemperatureValue(
       forecastPoint?.airTemperatureFahrenheit ?? report.summary?.temperatureFahrenheit,
     ),
   };
@@ -541,13 +594,13 @@ function getWindStat(report: MarineWeatherReportData): WeatherStat {
     observed?.speedKnots === undefined ? summary?.windSpeedMph : observed.speedKnots / 0.868976;
 
   return {
-    detail:
-      observed?.direction ??
-      summary?.windDirection ??
-      "Direction unavailable",
+    detail: observed?.direction ?? summary?.windDirection ?? "Direction unavailable",
     icon: Wind,
     label: "Wind",
-    value: formatKnotsFromMph(speedMph),
+    value:
+      speedMph === undefined
+        ? emptyValue(Wind, "No reading")
+        : filledValue(formatKnotsFromMph(speedMph)),
   };
 }
 
@@ -563,7 +616,10 @@ function getGustStat(report: MarineWeatherReportData): WeatherStat {
     detail: observed ? `Observed at ${formatObservationTime(observed.at)}` : "Forecast gust",
     icon: Compass,
     label: "Gusts",
-    value: formatKnotsFromMph(gustMph),
+    value:
+      gustMph === undefined
+        ? emptyValue(Compass, "No gusts")
+        : filledValue(formatKnotsFromMph(gustMph)),
   };
 }
 
@@ -578,8 +634,8 @@ function getWaterTemperatureStat(report: MarineWeatherReportData): WeatherStat {
     label: "Water",
     value:
       waterTemperature === undefined
-        ? "No reading"
-        : formatTemperature(waterTemperature.temperatureFahrenheit),
+        ? emptyValue(Droplets, "No reading")
+        : filledValue(formatTemperature(waterTemperature.temperatureFahrenheit)),
   };
 }
 
@@ -590,36 +646,35 @@ function getWaveStats(report: MarineWeatherReportData): WeatherStat[] {
     return [];
   }
 
-  const stats: WeatherStat[] = [];
-
-  if (wave.heightFeet !== undefined) {
-    stats.push({
+  return [
+    {
       detail: "Significant wave height",
       icon: Waves,
       label: "Height",
-      value: `${wave.heightFeet.toFixed(1)} ft`,
-    });
-  }
-
-  if (wave.periodSeconds !== undefined) {
-    stats.push({
+      value:
+        wave.heightFeet === undefined
+          ? emptyValue(Waves, "No height")
+          : filledValue(`${wave.heightFeet.toFixed(1)} ft`),
+    },
+    {
       detail: "Dominant period",
       icon: Waves,
       label: "Period",
-      value: `${Math.round(wave.periodSeconds)} sec`,
-    });
-  }
-
-  if (wave.directionDegrees !== undefined) {
-    stats.push({
+      value:
+        wave.periodSeconds === undefined
+          ? emptyValue(Waves, "No period")
+          : filledValue(`${Math.round(wave.periodSeconds)} sec`),
+    },
+    {
       detail: "Mean wave direction",
       icon: Compass,
       label: "Direction",
-      value: `${Math.round(wave.directionDegrees)} deg`,
-    });
-  }
-
-  return stats;
+      value:
+        wave.directionDegrees === undefined
+          ? emptyValue(Compass, "No direction")
+          : filledValue(`${Math.round(wave.directionDegrees)} deg`),
+    },
+  ];
 }
 
 function getCurrentStats(report: MarineWeatherReportData): WeatherStat[] {
@@ -629,27 +684,26 @@ function getCurrentStats(report: MarineWeatherReportData): WeatherStat[] {
     return [];
   }
 
-  const stats: WeatherStat[] = [];
-
-  if (current.speedKnots !== undefined) {
-    stats.push({
+  return [
+    {
       detail: current.direction ?? "Current direction unavailable",
       icon: Waves,
       label: "Current",
-      value: `${current.speedKnots.toFixed(1)} kt`,
-    });
-  }
-
-  if (current.directionDegrees !== undefined) {
-    stats.push({
+      value:
+        current.speedKnots === undefined
+          ? emptyValue(Waves, "No current")
+          : filledValue(`${current.speedKnots.toFixed(1)} kt`),
+    },
+    {
       detail: "Current direction",
       icon: Compass,
       label: "Set",
-      value: `${Math.round(current.directionDegrees)} deg`,
-    });
-  }
-
-  return stats;
+      value:
+        current.directionDegrees === undefined
+          ? emptyValue(Compass, "No set")
+          : filledValue(`${Math.round(current.directionDegrees)} deg`),
+    },
+  ];
 }
 
 function getOceanStationLabel(report: MarineWeatherReportData): string {
@@ -684,15 +738,23 @@ function getOceanSourceNote(report: MarineWeatherReportData): string {
 }
 
 function formatTemperature(value?: number): string {
-  return value === undefined ? "--°F" : `${Math.round(value)}°F`;
+  return `${Math.round(value ?? 0)}°F`;
 }
 
-function formatWindSummary(direction?: string, speedMph?: number): string {
-  return `${direction ?? "--"} ${formatKnotsFromMph(speedMph)}`;
+function formatTemperatureValue(value?: number): ReportValue {
+  return value === undefined ? emptyValue(CloudSun, "No temp") : filledValue(formatTemperature(value));
+}
+
+function formatWindSummaryValue(direction?: string, speedMph?: number): ReportValue {
+  if (speedMph === undefined) {
+    return emptyValue(Wind, "No wind");
+  }
+
+  return filledValue(`${direction ?? "Variable"} ${formatKnotsFromMph(speedMph)}`);
 }
 
 function formatKnotsFromMph(speedMph?: number): string {
-  return speedMph === undefined ? "-- kt" : `${Math.round(mphToKnots(speedMph))} kt`;
+  return `${Math.round(mphToKnots(speedMph ?? 0))} kt`;
 }
 
 function mphToKnots(speedMph: number): number {
@@ -794,4 +856,56 @@ function buildSmoothPath(points: Array<{ x: number; y: number }>): string {
 
     return `${path} C ${controlPointOne.x} ${controlPointOne.y}, ${controlPointTwo.x} ${controlPointTwo.y}, ${nextPoint.x} ${nextPoint.y}`;
   }, `M ${points[0].x} ${points[0].y}`);
+}
+
+function getDirectionMarkers(
+  points: Array<HourlyWeatherPoint & { gustY: number; speedY: number; x: number }>,
+  plotBottom: number,
+) {
+  if (points.length === 0) {
+    return [];
+  }
+
+  const targetIndexes = [0, 0.33, 0.66, 1].map((ratio) =>
+    Math.min(points.length - 1, Math.round((points.length - 1) * ratio)),
+  );
+  const uniqueIndexes = Array.from(new Set(targetIndexes));
+
+  return uniqueIndexes
+    .map((index) => points[index])
+    .filter((point) => point.windDirectionDegrees !== undefined)
+    .map((point) => ({
+      ...point,
+      y: plotBottom - 16,
+    }));
+}
+
+function buildWindChartLabel(points: HourlyWeatherPoint[]): string {
+  const maxSpeed = Math.max(...points.map((point) => point.windSpeedMph ?? 0), 0);
+  const maxGust = Math.max(
+    ...points.map((point) => point.windGustMph ?? point.windSpeedMph ?? 0),
+    0,
+  );
+
+  return `Hourly wind forecast up to ${Math.round(mphToKnots(maxSpeed))} knots with gusts up to ${Math.round(mphToKnots(maxGust))} knots.`;
+}
+
+function buildWaveChartLabel(observation: MarineWeatherReportData["waveObservation"]): string {
+  if (!observation) {
+    return "Wave observation unavailable.";
+  }
+
+  const parts = [
+    observation.heightFeet !== undefined
+      ? `${observation.heightFeet.toFixed(1)} foot wave height`
+      : "wave height unavailable",
+    observation.periodSeconds !== undefined
+      ? `${Math.round(observation.periodSeconds)} second period`
+      : "period unavailable",
+    observation.directionDegrees !== undefined
+      ? `${Math.round(observation.directionDegrees)} degree direction`
+      : "direction unavailable",
+  ];
+
+  return `Observed wave cycle with ${parts.join(", ")}.`;
 }

@@ -1,10 +1,22 @@
 import type { ReactNode } from "react";
-import { CircleAlert, X } from "lucide-react";
+import { CircleAlert, CircleCheck, CircleX, X } from "lucide-react";
 import type { ActivityDefinition, ActivityId } from "../../activities";
 import type { PlannerActivityContent } from "../../app/plannerContent";
 import type { CoastalLocation } from "../../domain/location/types";
 import type { TideReport } from "../../domain/tide/types";
 import type { HourlyWeatherPoint, MarineWeatherReport } from "../../domain/weather/types";
+
+type VerdictTone = "great" | "watch" | "avoid";
+
+const verdictMeta: Record<VerdictTone, { icon: typeof CircleCheck; label: string }> = {
+  great: { icon: CircleCheck, label: "Great conditions" },
+  watch: { icon: CircleAlert, label: "Worth a look" },
+  avoid: { icon: CircleX, label: "Plan carefully" },
+};
+
+function isVerdictTone(value: string): value is VerdictTone {
+  return value === "great" || value === "watch" || value === "avoid";
+}
 
 export interface DaySummaryPanelProps {
   activityId: ActivityId;
@@ -395,6 +407,12 @@ export function DaySummaryPanel({
     selectedLocation.name,
   );
 
+  const verdictTone = isVerdictTone(plannerContent.recommendation.tone)
+    ? plannerContent.recommendation.tone
+    : "watch";
+  const verdict = verdictMeta[verdictTone];
+  const VerdictIcon = verdict.icon;
+
   return (
     <section
       className="day-summary-panel"
@@ -457,6 +475,11 @@ export function DaySummaryPanel({
         </div>
       </div>
 
+      <span className="day-summary-verdict" data-tone={verdictTone}>
+        <VerdictIcon aria-hidden="true" size={16} strokeWidth={2.4} />
+        {verdict.label}
+      </span>
+
       <h2 className="day-summary-heading">{plannerContent.recommendation.label}</h2>
 
       <div className="day-summary-body">
@@ -468,10 +491,10 @@ export function DaySummaryPanel({
       </div>
 
       <div className="day-summary-window">
-        <div className="day-summary-window-time">
-          <span className="day-summary-window-label">Best window</span>
-          <strong>{plannerContent.bestWindow.label}</strong>
-        </div>
+        <span className="day-summary-window-label">Best window</span>
+        <strong className="day-summary-window-time">
+          {plannerContent.bestWindow.label}
+        </strong>
         <p className="day-summary-window-reason">
           {plannerContent.bestWindow.reason}
         </p>

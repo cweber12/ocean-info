@@ -165,6 +165,68 @@
   --accent: var(--color-accent-primary);
   --accent-soft: var(--color-accent-soft);
   --warning: var(--color-status-warning);
+
+  /* ── Surface tiers ────────────────────────────────────────────────────────
+     Replaces the single repeated glass-card recipe with an intentional
+     hierarchy: one elevated hero, calm framed instruments, and flat sections
+     divided by hairline rules. */
+  --surface-hero: linear-gradient(
+    168deg,
+    color-mix(in srgb, var(--color-bg-secondary) 96%, var(--color-accent-soft)) 0%,
+    color-mix(in srgb, var(--color-bg-secondary) 88%, var(--color-accent-activity-soft)) 100%
+  );
+  --surface-hero-border: color-mix(in srgb, var(--color-accent-activity) 30%, var(--color-border-glass-panel));
+  --surface-hero-shadow: var(--shadow-lg);
+  --surface-instrument: color-mix(in srgb, var(--color-bg-secondary) 82%, transparent);
+  --surface-instrument-border: var(--color-border-glass-card);
+  --surface-instrument-shadow: var(--shadow-sm);
+  --surface-section: transparent;
+  --surface-subtle: color-mix(in srgb, var(--color-bg-tertiary) 60%, transparent);
+  --rule-hairline: color-mix(in srgb, var(--color-border-secondary) 88%, transparent);
+  --rule-strong: var(--color-border-primary);
+
+  /* ── Per-activity accent (resolved via [data-activity] on the shell) ───────
+     Defaults to the brand teal; each activity overrides hue + soft tint. */
+  --color-accent-activity: var(--color-accent-primary);
+  --color-accent-activity-strong: var(--color-accent-primary-hover);
+  --color-accent-activity-soft: var(--color-accent-soft);
+}
+
+/* ── Activity accents — light ──────────────────────────────────────────────── */
+[data-activity="tidepools"] {
+  --color-accent-activity: #2f8069;
+  --color-accent-activity-strong: #226453;
+  --color-accent-activity-soft: #d6ece2;
+}
+
+[data-activity="surf"] {
+  --color-accent-activity: #1f7f94;
+  --color-accent-activity-strong: #155e6e;
+  --color-accent-activity-soft: #d2e9ee;
+}
+
+[data-activity="dive"] {
+  --color-accent-activity: #0f5f72;
+  --color-accent-activity-strong: #084655;
+  --color-accent-activity-soft: #cfe6ea;
+}
+
+[data-activity="beach-day"] {
+  --color-accent-activity: #c1772f;
+  --color-accent-activity-strong: #9f5d1f;
+  --color-accent-activity-soft: #f5e3cf;
+}
+
+[data-activity="sail"] {
+  --color-accent-activity: #3a6ea5;
+  --color-accent-activity-strong: #2b5481;
+  --color-accent-activity-soft: #dbe7f3;
+}
+
+[data-activity="sup-kayak"] {
+  --color-accent-activity: #4f8a6a;
+  --color-accent-activity-strong: #3b6c51;
+  --color-accent-activity-soft: #dceadf;
 }
 
 [data-theme="dark"] {
@@ -249,6 +311,43 @@
   --shadow-focus: 0 0 0 3px rgb(145 223 226 / 28%);
 }
 
+/* ── Activity accents — dark (lifted for contrast on dark surfaces) ─────────── */
+[data-theme="dark"] [data-activity="tidepools"] {
+  --color-accent-activity: #7fc7ac;
+  --color-accent-activity-strong: #9bd6c0;
+  --color-accent-activity-soft: #1e3d36;
+}
+
+[data-theme="dark"] [data-activity="surf"] {
+  --color-accent-activity: #76c2d4;
+  --color-accent-activity-strong: #97d3e1;
+  --color-accent-activity-soft: #163c44;
+}
+
+[data-theme="dark"] [data-activity="dive"] {
+  --color-accent-activity: #6fc0d2;
+  --color-accent-activity-strong: #8fd2e0;
+  --color-accent-activity-soft: #123741;
+}
+
+[data-theme="dark"] [data-activity="beach-day"] {
+  --color-accent-activity: #e8b277;
+  --color-accent-activity-strong: #f0c594;
+  --color-accent-activity-soft: #402f1f;
+}
+
+[data-theme="dark"] [data-activity="sail"] {
+  --color-accent-activity: #8fb3dc;
+  --color-accent-activity-strong: #aac7e8;
+  --color-accent-activity-soft: #1e3349;
+}
+
+[data-theme="dark"] [data-activity="sup-kayak"] {
+  --color-accent-activity: #8cc4a3;
+  --color-accent-activity-strong: #a6d3b8;
+  --color-accent-activity-soft: #1d3a2c;
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
@@ -330,5 +429,41 @@
     --shadow-md: 0 14px 36px rgb(0 0 0 / 28%);
     --shadow-lg: 0 28px 72px rgb(0 0 0 / 38%);
     --shadow-focus: 0 0 0 3px rgb(145 223 226 / 28%);
+  }
+
+  :root:not([data-theme="light"]) [data-activity="tidepools"] {
+    --color-accent-activity: #7fc7ac;
+    --color-accent-activity-strong: #9bd6c0;
+    --color-accent-activity-soft: #1e3d36;
+  }
+
+  :root:not([data-theme="light"]) [data-activity="surf"] {
+    --color-accent-activity: #76c2d4;
+    --color-accent-activity-strong: #97d3e1;
+    --color-accent-activity-soft: #163c44;
+  }
+
+  :root:not([data-theme="light"]) [data-activity="dive"] {
+    --color-accent-activity: #6fc0d2;
+    --color-accent-activity-strong: #8fd2e0;
+    --color-accent-activity-soft: #123741;
+  }
+
+  :root:not([data-theme="light"]) [data-activity="beach-day"] {
+    --color-accent-activity: #e8b277;
+    --color-accent-activity-strong: #f0c594;
+    --color-accent-activity-soft: #402f1f;
+  }
+
+  :root:not([data-theme="light"]) [data-activity="sail"] {
+    --color-accent-activity: #8fb3dc;
+    --color-accent-activity-strong: #aac7e8;
+    --color-accent-activity-soft: #1e3349;
+  }
+
+  :root:not([data-theme="light"]) [data-activity="sup-kayak"] {
+    --color-accent-activity: #8cc4a3;
+    --color-accent-activity-strong: #a6d3b8;
+    --color-accent-activity-soft: #1d3a2c;
   }
 }

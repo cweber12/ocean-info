@@ -417,7 +417,7 @@ export function App() {
   }
 
   return (
-    <main className="app-frame">
+    <main className="app-frame" data-activity={plannerState.activityId}>
       <header className="site-header">
         <div className="shell header-shell">
           <div className="header-top">
@@ -439,74 +439,79 @@ export function App() {
               isLoading={marineWeatherQuery.isLoading}
               report={marineWeatherQuery.data}
             />
-            <section
-              className="header-planner"
-              aria-label="Plan by location and date"
-            >
-              <div className="control-strip">
-                <div>
-                  <label htmlFor="location-select">
-                    <span>Location</span>
-                    <select
-                      id="location-select"
-                      value={plannerState.locationId}
-                      onChange={(event) =>
-                        setPlannerState((current) => ({
-                          ...current,
-                          locationId: event.target.value,
-                        }))
-                      }
-                    >
-                      {coastalLocations.map((location) => (
-                        <option key={location.id} value={location.id}>
-                          {location.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <div>
-                  <label htmlFor="date-select">
-                    <span>Date</span>
-                    <input
-                      id="date-select"
-                      type="date"
-                      value={plannerState.date}
-                      onChange={(event) =>
-                        setPlannerState((current) => ({
-                          ...current,
-                          date: event.target.value,
-                        }))
-                      }
-                    />
-                  </label>
-                </div>
-                <div>
-                  <label htmlFor="activity-select" id="activity-select-label">
-                    <span>Activity</span>
-                    <select
-                      id="activity-select"
-                      value={plannerState.activityId}
-                      onChange={(event) => selectActivity(event.target.value as ActivityId)}
-                    >
-                      {activityDefinitions.map((activity) => (
-                        <option key={activity.id} value={activity.id}>
-                          {activity.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              </div>
-            </section>
           </div>
         </div>
       </header>
 
+      <div className="control-bar">
+        <div className="shell">
+          <section
+            className="header-planner"
+            aria-label="Plan by location and date"
+          >
+            <div className="control-strip">
+              <div>
+                <label htmlFor="location-select">
+                  <span>Location</span>
+                  <select
+                    id="location-select"
+                    value={plannerState.locationId}
+                    onChange={(event) =>
+                      setPlannerState((current) => ({
+                        ...current,
+                        locationId: event.target.value,
+                      }))
+                    }
+                  >
+                    {coastalLocations.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div>
+                <label htmlFor="date-select">
+                  <span>Date</span>
+                  <input
+                    id="date-select"
+                    type="date"
+                    value={plannerState.date}
+                    onChange={(event) =>
+                      setPlannerState((current) => ({
+                        ...current,
+                        date: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+              <div>
+                <label htmlFor="activity-select" id="activity-select-label">
+                  <span>Activity</span>
+                  <select
+                    id="activity-select"
+                    value={plannerState.activityId}
+                    onChange={(event) => selectActivity(event.target.value as ActivityId)}
+                  >
+                    {activityDefinitions.map((activity) => (
+                      <option key={activity.id} value={activity.id}>
+                        {activity.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
       <section className="ocean-stage">
         <div className="shell">
           <section className="planner-layout" aria-label="Ocean planner">
-            <section className="planner-board" aria-label="Activity details">
+            <section className="planner-rail" aria-label="Activity outlook">
               <div className="planner-summary-row">
                 <DaySummaryPanel
                   activityId={plannerState.activityId}
@@ -524,145 +529,168 @@ export function App() {
                 />
               </div>
 
-              {(animalSearches.coastline || animalSearches.ocean || buoyStation) && (
-                <div
-                  className="planner-sightings-map-card planner-sightings-map-card--split"
-                >
-                  <div className="planner-sightings-subsection">
-                    <AnimalSightingsPanel
-                      activityId={plannerState.activityId}
-                      daysBack={animalDaysBack}
-                      errorMessage={
-                        coastlineGroupsQuery.error instanceof Error
-                          ? coastlineGroupsQuery.error.message
-                          : coastlineSightingsQuery.error instanceof Error
-                            ? coastlineSightingsQuery.error.message
-                            : oceanSightingsQuery.error instanceof Error
-                              ? oceanSightingsQuery.error.message
-                              : undefined
-                      }
-                      groupReport={coastlineGroupsQuery.data}
-                      isGroupsLoading={coastlineGroupsQuery.isLoading}
-                      isSightingsLoading={
-                        coastlineSightingsQuery.isLoading || oceanSightingsQuery.isLoading
-                      }
-                      onDaysBackChange={setAnimalDaysBack}
-                      onPageChange={setAnimalPage}
-                      onQueryChange={setAnimalQuery}
-                      onRadiusKmChange={setAnimalRadiusKm}
-                      page={animalPage}
-                      query={animalQuery}
-                      radiusKm={animalRadiusKm}
-                      sightingPage={combinedSightingPage}
-                    />
+              <section
+                className="conditions-section"
+                aria-labelledby="conditions-heading"
+              >
+                <div className="condition-group">
+                  <div className="section-heading section-heading--rail">
+                    <div>
+                      <p className="eyebrow">Conditions</p>
+                      <h2 id="conditions-heading">What matters for this plan</h2>
+                    </div>
+                    <span>{plannerContent.conditions.length} checks</span>
                   </div>
 
-                  <div className="planner-map-subsection">
-                    <CoastalMapPanel
-                      buoyStation={buoyStation}
-                      location={selectedLocation}
-                      sightings={mapSightings}
-                      tideStation={tideStation}
-                    />
-                  </div>
+                  <ul className="condition-list">
+                    {plannerContent.conditions.map((condition) => (
+                      <li
+                        className="condition-row"
+                        data-tone={condition.tone}
+                        key={condition.id}
+                      >
+                        <span className="condition-row-tone" aria-hidden="true" />
+                        <div className="condition-row-body">
+                          <div className="condition-row-heading">
+                            <span className="condition-row-label">
+                              {condition.label}
+                            </span>
+                            <strong className="condition-row-flag" data-tone={condition.tone}>
+                              {condition.tone}
+                            </strong>
+                          </div>
+                          <h3>{condition.value}</h3>
+                          <p>{condition.note}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+
+              {(animalSearches.coastline || animalSearches.ocean) && (
+                <div className="planner-sightings">
+                  <AnimalSightingsPanel
+                    activityId={plannerState.activityId}
+                    daysBack={animalDaysBack}
+                    errorMessage={
+                      coastlineGroupsQuery.error instanceof Error
+                        ? coastlineGroupsQuery.error.message
+                        : coastlineSightingsQuery.error instanceof Error
+                          ? coastlineSightingsQuery.error.message
+                          : oceanSightingsQuery.error instanceof Error
+                            ? oceanSightingsQuery.error.message
+                            : undefined
+                    }
+                    groupReport={coastlineGroupsQuery.data}
+                    isGroupsLoading={coastlineGroupsQuery.isLoading}
+                    isSightingsLoading={
+                      coastlineSightingsQuery.isLoading || oceanSightingsQuery.isLoading
+                    }
+                    onDaysBackChange={setAnimalDaysBack}
+                    onPageChange={setAnimalPage}
+                    onQueryChange={setAnimalQuery}
+                    onRadiusKmChange={setAnimalRadiusKm}
+                    page={animalPage}
+                    query={animalQuery}
+                    radiusKm={animalRadiusKm}
+                    sightingPage={combinedSightingPage}
+                  />
                 </div>
               )}
 
-              <div className="data-module-grid">
-                {animalTrackingSearch ? (
-                  <div className="data-module data-module-animal-tracking">
-                    <AnimalTrackingPanel
-                      errorMessage={
-                        animalTrackingQuery.error instanceof Error
-                          ? animalTrackingQuery.error.message
-                          : undefined
-                      }
-                      isLoading={animalTrackingQuery.isLoading}
-                      report={animalTrackingQuery.data}
-                    />
+              <section className="notice-section" aria-labelledby="notice-heading">
+                <div className="section-heading section-heading--rail">
+                  <div>
+                    <p className="eyebrow">Connections</p>
+                    <h2 id="notice-heading">What to notice</h2>
                   </div>
-                ) : null}
-
-                <div className="data-module data-module-tide">
-                  <TideReport
-                    activityId={plannerState.activityId}
-                    errorMessage={
-                      tideReportQuery.error instanceof Error
-                        ? tideReportQuery.error.message
-                        : undefined
-                    }
-                    isLoading={tideReportQuery.isLoading}
-                    report={tideReportQuery.data}
-                  />
+                  <span>Field notes</span>
                 </div>
 
-                <div className="data-module data-module-weather">
-                  <MarineWeatherReport
-                    activityId={plannerState.activityId}
-                    errorMessage={
-                      marineWeatherQuery.error instanceof Error
-                        ? marineWeatherQuery.error.message
-                        : undefined
-                    }
-                    isLoading={marineWeatherQuery.isLoading}
-                    report={marineWeatherQuery.data}
-                  />
-                </div>
-              </div>
+                <ul className="notice-list">
+                  {plannerContent.whatToNotice.map((note) => (
+                    <li className="notice-line" key={note}>
+                      <span aria-hidden="true" />
+                      <p>{note}</p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </section>
 
             <section
-              className="conditions-section"
-              aria-labelledby="conditions-heading"
+              className="planner-dashboard-col"
+              aria-label="Conditions and map"
             >
-              <div className="condition-group">
-                <div className="section-heading">
+              <section
+                className="conditions-dashboard"
+                aria-labelledby="dashboard-heading"
+              >
+                <div className="conditions-dashboard-header">
                   <div>
-                    <p className="eyebrow">Conditions</p>
-                    <h2 id="conditions-heading">What matters for this plan</h2>
+                    <p className="eyebrow">Live conditions</p>
+                    <h2 id="dashboard-heading">Tide, wind &amp; waves</h2>
                   </div>
-                  <span>{plannerContent.conditions.length} checks</span>
+                  <span className="conditions-dashboard-meta">{selectedLocation.name}</span>
                 </div>
 
-                <div className="condition-grid">
-                  {plannerContent.conditions.map((condition) => (
-                    <article
-                      className="condition-card"
-                      data-tone={condition.tone}
-                      key={condition.id}
-                    >
-                      <div className="condition-card-heading">
-                        <span>{condition.label}</span>
-                        <strong>{condition.tone}</strong>
-                      </div>
-                      <h3>{condition.value}</h3>
-                      <p>{condition.note}</p>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            </section>
+                <div className="conditions-dashboard-body">
+                  <div className="conditions-panel conditions-panel--tide">
+                    <TideReport
+                      activityId={plannerState.activityId}
+                      errorMessage={
+                        tideReportQuery.error instanceof Error
+                          ? tideReportQuery.error.message
+                          : undefined
+                      }
+                      isLoading={tideReportQuery.isLoading}
+                      report={tideReportQuery.data}
+                    />
+                  </div>
 
-            <section className="notice-section" aria-labelledby="notice-heading">
-              <div className="section-heading">
-                <div>
-                  <p className="eyebrow">Connections</p>
-                  <h2 id="notice-heading">What to notice</h2>
+                  <div className="conditions-panel conditions-panel--weather">
+                    <MarineWeatherReport
+                      activityId={plannerState.activityId}
+                      errorMessage={
+                        marineWeatherQuery.error instanceof Error
+                          ? marineWeatherQuery.error.message
+                          : undefined
+                      }
+                      isLoading={marineWeatherQuery.isLoading}
+                      report={marineWeatherQuery.data}
+                    />
+                  </div>
                 </div>
-                <span>Field notes</span>
-              </div>
+              </section>
 
-              <div className="notice-grid">
-                {plannerContent.whatToNotice.map((note) => (
-                  <article className="notice-card" key={note}>
-                    <span aria-hidden="true" />
-                    <p>{note}</p>
-                  </article>
-                ))}
-              </div>
+              {(animalSearches.coastline || animalSearches.ocean || buoyStation) && (
+                <div className="planner-map">
+                  <CoastalMapPanel
+                    buoyStation={buoyStation}
+                    location={selectedLocation}
+                    sightings={mapSightings}
+                    tideStation={tideStation}
+                  />
+                </div>
+              )}
+
+              {animalTrackingSearch ? (
+                <div className="planner-tracking">
+                  <AnimalTrackingPanel
+                    errorMessage={
+                      animalTrackingQuery.error instanceof Error
+                        ? animalTrackingQuery.error.message
+                        : undefined
+                    }
+                    isLoading={animalTrackingQuery.isLoading}
+                    report={animalTrackingQuery.data}
+                  />
+                </div>
+              ) : null}
             </section>
           </section>
-        </section>
-      </div>
+        </div>
       </section>
     </main>
   );

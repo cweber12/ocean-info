@@ -22,12 +22,14 @@ export async function fetchMarineWeatherReport({
   location,
   tideStation,
 }: MarineWeatherReportRequest): Promise<MarineWeatherReport> {
+  const weatherPoint = location.stationHints?.weatherPoint ?? location.point;
+
   const [forecast, fallbackWeather, observations, waves] = await Promise.all([
     fetchOptional("NWS forecast", () =>
       fetchNwsWeatherForecast({
         date,
-        latitude: location.point.latitude,
-        longitude: location.point.longitude,
+        latitude: weatherPoint.latitude,
+        longitude: weatherPoint.longitude,
       }),
     ),
     fetchOptional("OpenWeather fallback", () =>

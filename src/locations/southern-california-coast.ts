@@ -19,7 +19,11 @@ export const coastalLocations: CoastalLocation[] = [
     animalSightingCenters: {
       tidepools: { latitude: 32.5795, longitude: -117.1359 },
     },
-    stationHints: { buoyStationId: "46254", tideStationId: "9410120" },
+    stationHints: {
+      buoyStationId: "46254",
+      tideStationId: "9410120",
+      weatherPoint: { latitude: 32.58, longitude: -117.12 },
+    },
   },
   {
     id: "south-san-diego-bay",
@@ -27,7 +31,10 @@ export const coastalLocations: CoastalLocation[] = [
     area: "San Diego Bay",
     point: { latitude: 32.63, longitude: -117.11 },
     activityIds: ["sail", "sup-kayak"],
-    stationHints: { tideStationId: "9410135" },
+    stationHints: {
+      tideStationId: "9410135",
+      weatherPoint: { latitude: 32.63, longitude: -117.09 },
+    },
   },
   {
     id: "national-city-san-diego-bay",
@@ -35,7 +42,10 @@ export const coastalLocations: CoastalLocation[] = [
     area: "San Diego Bay",
     point: { latitude: 32.66, longitude: -117.12 },
     activityIds: ["sail", "sup-kayak"],
-    stationHints: { tideStationId: "9410152" },
+    stationHints: {
+      tideStationId: "9410152",
+      weatherPoint: { latitude: 32.66, longitude: -117.1 },
+    },
   },
   {
     id: "point-loma-quarantine-station",
@@ -46,7 +56,11 @@ export const coastalLocations: CoastalLocation[] = [
     animalSightingCenters: {
       dive: { latitude: 32.6978, longitude: -117.2415 },
     },
-    stationHints: { buoyStationId: "46254", tideStationId: "9410166" },
+    stationHints: {
+      buoyStationId: "46254",
+      tideStationId: "9410166",
+      weatherPoint: { latitude: 32.7, longitude: -117.2 },
+    },
   },
   {
     id: "san-diego-broadway-pier",
@@ -54,7 +68,10 @@ export const coastalLocations: CoastalLocation[] = [
     area: "San Diego Bay",
     point: { latitude: 32.72, longitude: -117.18 },
     activityIds: ["sail", "sup-kayak", "beach-day"],
-    stationHints: { tideStationId: "9410170" },
+    stationHints: {
+      tideStationId: "9410170",
+      weatherPoint: { latitude: 32.72, longitude: -117.16 },
+    },
   },
   {
     id: "mission-bay-campland",
@@ -62,7 +79,11 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Mission Bay",
     point: { latitude: 32.79, longitude: -117.22 },
     activityIds: ["beach-day", "sail", "sup-kayak"],
-    stationHints: { buoyStationId: "46258", tideStationId: "9410196" },
+    stationHints: {
+      buoyStationId: "46258",
+      tideStationId: "9410196",
+      weatherPoint: { latitude: 32.79, longitude: -117.2 },
+    },
   },
   {
     id: "san-diego-la-jolla-shores",
@@ -74,7 +95,11 @@ export const coastalLocations: CoastalLocation[] = [
       dive: { latitude: 32.8554, longitude: -117.262 },
       tidepools: { latitude: 32.8569, longitude: -117.2574 },
     },
-    stationHints: { buoyStationId: "46254", tideStationId: "9410230" },
+    stationHints: {
+      buoyStationId: "46254",
+      tideStationId: "9410230",
+      weatherPoint: { latitude: 32.8569, longitude: -117.245 },
+    },
   },
   {
     id: "san-diego-la-jolla-cove",
@@ -86,7 +111,11 @@ export const coastalLocations: CoastalLocation[] = [
       dive: { latitude: 32.8507, longitude: -117.2755 },
       tidepools: { latitude: 32.8498, longitude: -117.2717 },
     },
-    stationHints: { buoyStationId: "46254", tideStationId: "9410230" },
+    stationHints: {
+      buoyStationId: "46254",
+      tideStationId: "9410230",
+      weatherPoint: { latitude: 32.8507, longitude: -117.26 },
+    },
   },
   {
     id: "san-diego-mission-beach",
@@ -94,7 +123,11 @@ export const coastalLocations: CoastalLocation[] = [
     area: "San Diego",
     point: { latitude: 32.7707, longitude: -117.2525 },
     activityIds: ["beach-day", "surf", "sup-kayak"],
-    stationHints: { buoyStationId: "46258", tideStationId: "9410196" },
+    stationHints: {
+      buoyStationId: "46258",
+      tideStationId: "9410196",
+      weatherPoint: { latitude: 32.7707, longitude: -117.24 },
+    },
   },
   {
     id: "del-mar",
@@ -105,7 +138,11 @@ export const coastalLocations: CoastalLocation[] = [
     animalSightingCenters: {
       tidepools: { latitude: 32.9595, longitude: -117.2653 },
     },
-    stationHints: { buoyStationId: "46254", tideStationId: "9410230" },
+    stationHints: {
+      buoyStationId: "46254",
+      tideStationId: "9410230",
+      weatherPoint: { latitude: 32.9595, longitude: -117.25 },
+    },
   },
   {
     id: "encinitas-swamis",
@@ -116,7 +153,11 @@ export const coastalLocations: CoastalLocation[] = [
     animalSightingCenters: {
       tidepools: { latitude: 33.0369, longitude: -117.292 },
     },
-    stationHints: { buoyStationId: "46254", tideStationId: "9410230" },
+    stationHints: {
+      buoyStationId: "46254",
+      tideStationId: "9410230",
+      weatherPoint: { latitude: 33.0369, longitude: -117.282 },
+    },
   },
   {
     id: "carlsbad-tamarack",
@@ -124,7 +165,11 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Carlsbad",
     point: { latitude: 33.1502, longitude: -117.347 },
     activityIds: ["beach-day", "surf", "sup-kayak"],
-    stationHints: { buoyStationId: "46224", tideStationId: "9410230" },
+    stationHints: {
+      buoyStationId: "46224",
+      tideStationId: "9410230",
+      weatherPoint: { latitude: 33.1502, longitude: -117.337 },
+    },
   },
   {
     id: "oceanside-harbor",
@@ -132,6 +177,10 @@ export const coastalLocations: CoastalLocation[] = [
     area: "Oceanside",
     point: { latitude: 33.2077, longitude: -117.3943 },
     activityIds: ["beach-day", "sail", "sup-kayak", "surf"],
-    stationHints: { buoyStationId: "46224", tideStationId: "9410230" },
+    stationHints: {
+      buoyStationId: "46224",
+      tideStationId: "9410230",
+      weatherPoint: { latitude: 33.2077, longitude: -117.384 },
+    },
   },
 ];

@@ -17,6 +17,12 @@ Each location should include:
 - supported activity tags
 - optional station hints for tide, buoy, weather, and water quality sources
 
+Weather hints may include a nearby on-land forecast point when the display
+coordinate sits over water or on a marine shoreline cell that NWS does not
+serve through the hourly forecast API. That point should stay close enough to
+preserve the selected location's weather character while keeping NWS forecast
+coverage available.
+
 ## Why Curated Locations
 
 Curated locations make source mapping reliable. Many ocean APIs are station-based, not beach-name based. A curated model lets the app map a user-facing place like "La Jolla Shores" to the best available stations per data type.

@@ -89,8 +89,9 @@ Query params:
 
 Notes:
 
-- date window is limited to yesterday through five days ahead
+- date window is limited to today through five days ahead
 - this endpoint is only intended to fill NOAA/NWS weather gaps
+- the Worker uses OpenWeather's free 5 day / 3 hour forecast endpoint and normalizes those periods into the app response shape
 
 Response:
 

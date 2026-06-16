@@ -198,7 +198,7 @@ async function handleWeatherFallbackRequest(
   if (!isWithinOpenWeatherWindow(query.date)) {
     return json(
       {
-        error: "date must be from yesterday through 5 days ahead",
+        error: "date must be from today through 5 days ahead",
       },
       400,
     );
@@ -220,12 +220,11 @@ async function fetchOpenWeatherFallback(
   query: WeatherFallbackQuery,
   apiKey: string,
 ): Promise<WeatherFallbackResponse> {
-  const upstreamUrl = new URL("https://api.openweathermap.org/data/3.0/onecall");
+  const upstreamUrl = new URL("https://api.openweathermap.org/data/2.5/forecast");
   upstreamUrl.searchParams.set("lat", query.latitude.toFixed(4));
   upstreamUrl.searchParams.set("lon", query.longitude.toFixed(4));
   upstreamUrl.searchParams.set("appid", apiKey);
   upstreamUrl.searchParams.set("units", "imperial");
-  upstreamUrl.searchParams.set("exclude", "minutely,daily,alerts");
 
   const response = await fetch(upstreamUrl);
 
@@ -235,23 +234,37 @@ async function fetchOpenWeatherFallback(
   }
 
   const payload = (await response.json()) as {
-    hourly?: Array<{
+    city?: {
+      country?: string;
+      name?: string;
+      timezone?: number;
+    };
+    list?: Array<{
       dt?: number;
-      temp?: number;
+      main?: {
+        humidity?: number;
+        temp?: number;
+      };
       pop?: number;
-      humidity?: number;
       weather?: Array<{ description?: string }>;
-      wind_speed?: number;
-      wind_gust?: number;
-      wind_deg?: number;
+      wind?: {
+        deg?: number;
+        gust?: number;
+        speed?: number;
+      };
     }>;
-    timezone_offset?: number;
   };
 
-  const timezoneOffsetSeconds = payload.timezone_offset ?? 0;
-  const stationName = `OpenWeather ${query.latitude.toFixed(2)},${query.longitude.toFixed(2)}`;
-  const hourlyForecast = (payload.hourly ?? [])
-    .map((hour) => toFallbackPoint(hour, timezoneOffsetSeconds))
+  const timezoneOffsetSeconds = payload.city?.timezone ?? 0;
+  const stationSuffix = [payload.city?.name, payload.city?.country]
+    .filter((item): item is string => Boolean(item && item.trim()))
+    .join(", ");
+  const stationName =
+    stationSuffix.length > 0
+      ? `OpenWeather ${stationSuffix}`
+      : `OpenWeather ${query.latitude.toFixed(2)},${query.longitude.toFixed(2)}`;
+  const hourlyForecast = (payload.list ?? [])
+    .map((entry) => toFallbackPoint(entry, timezoneOffsetSeconds))
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
     .filter((point) => point.at.slice(0, 10) === query.date);
 
@@ -290,37 +303,41 @@ async function fetchOpenWeatherFallback(
 }
 
 function toFallbackPoint(
-  hour: {
+  entry: {
     dt?: number;
-    temp?: number;
+    main?: {
+      humidity?: number;
+      temp?: number;
+    };
     pop?: number;
-    humidity?: number;
     weather?: Array<{ description?: string }>;
-    wind_speed?: number;
-    wind_gust?: number;
-    wind_deg?: number;
+    wind?: {
+      deg?: number;
+      gust?: number;
+      speed?: number;
+    };
   },
   timezoneOffsetSeconds: number,
 ) {
-  if (typeof hour.dt !== "number") {
+  if (typeof entry.dt !== "number") {
     return undefined;
   }
 
-  const at = toIsoWithOffset(hour.dt, timezoneOffsetSeconds);
-  const directionDegrees = asNumber(hour.wind_deg);
+  const at = toIsoWithOffset(entry.dt, timezoneOffsetSeconds);
+  const directionDegrees = asNumber(entry.wind?.deg);
 
   return {
     at,
-    airTemperatureFahrenheit: asNumber(hour.temp),
+    airTemperatureFahrenheit: asNumber(entry.main?.temp),
     precipitationChancePercent:
-      typeof hour.pop === "number" ? Math.round(hour.pop * 100) : undefined,
-    relativeHumidityPercent: asNumber(hour.humidity),
-    shortForecast: asString(hour.weather?.[0]?.description),
+      typeof entry.pop === "number" ? Math.round(entry.pop * 100) : undefined,
+    relativeHumidityPercent: asNumber(entry.main?.humidity),
+    shortForecast: asString(entry.weather?.[0]?.description),
     sourceName: "OpenWeather",
     windDirection: toCardinal(directionDegrees),
     windDirectionDegrees: directionDegrees,
-    windGustMph: asNumber(hour.wind_gust),
-    windSpeedMph: asNumber(hour.wind_speed),
+    windGustMph: asNumber(entry.wind?.gust),
+    windSpeedMph: asNumber(entry.wind?.speed),
   };
 }
 
@@ -605,7 +622,6 @@ function isWithinOpenWeatherWindow(date: string): boolean {
   const base = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
 
   const min = new Date(base);
-  min.setUTCDate(min.getUTCDate() - 1);
 
   const max = new Date(base);
   max.setUTCDate(max.getUTCDate() + 5);

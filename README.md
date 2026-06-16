@@ -61,6 +61,7 @@ See [docs/movebank-cloudflare-setup.md](docs/movebank-cloudflare-setup.md) for W
 OpenWeather fallback is used only when NOAA/NWS weather data is unavailable or missing key fields.
 
 - Requests are proxied through the Cloudflare Worker.
+- The Worker uses OpenWeather's 5 day / 3 hour forecast endpoint and maps it into the app's fallback shape.
 - `OPEN_WEATHER_KEY` must be stored as a Worker secret.
 - Browser code never includes private weather keys.
 

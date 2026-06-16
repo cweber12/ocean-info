@@ -8,6 +8,7 @@ import {
 } from "../data-sources/inaturalist/observations";
 import { fetchNoaaTideReport } from "../data-sources/noaa/tides";
 import { fetchMarineWeatherReport } from "../data-sources/noaa/weather";
+import { fetchWaterQualityReport } from "../data-sources/water-quality";
 import type { AnimalSighting, AnimalSightingSearch } from "../domain/animal-sightings/types";
 import type { AnimalTrackingSearch } from "../domain/animal-tracking/types";
 import type { AnimalSightingActivityId } from "../domain/location/types";
@@ -19,6 +20,7 @@ import { AnimalTrackingPanel } from "../shared/components/AnimalTrackingPanel";
 import { CoastalMapPanel } from "../shared/components/CoastalMapPanel";
 import { DaySummaryPanel } from "../shared/components/DaySummaryPanel";
 import { TideReport } from "../shared/components/TideReport";
+import { WaterQualityReport } from "../shared/components/WaterQualityReport";
 import {
   HeaderWeatherSummary,
   MarineWeatherReport,
@@ -186,6 +188,19 @@ export function App() {
         date: plannerState.date,
         location: selectedLocation,
         tideStation,
+      }),
+  });
+
+  const waterQualityQuery = useQuery({
+    queryKey: [
+      "water-quality-report",
+      selectedLocation.id,
+      plannerState.date,
+    ],
+    queryFn: () =>
+      fetchWaterQualityReport({
+        date: plannerState.date,
+        location: selectedLocation,
       }),
   });
 
@@ -630,7 +645,7 @@ export function App() {
                 <div className="conditions-dashboard-header">
                   <div>
                     <p className="eyebrow">Live conditions</p>
-                    <h2 id="dashboard-heading">Tide, wind &amp; waves</h2>
+                    <h2 id="dashboard-heading">Tide, weather &amp; water quality</h2>
                   </div>
                   <span className="conditions-dashboard-meta">{selectedLocation.name}</span>
                 </div>
@@ -659,6 +674,19 @@ export function App() {
                       }
                       isLoading={marineWeatherQuery.isLoading}
                       report={marineWeatherQuery.data}
+                    />
+                  </div>
+
+                  <div className="conditions-panel conditions-panel--water-quality">
+                    <WaterQualityReport
+                      activityId={plannerState.activityId}
+                      errorMessage={
+                        waterQualityQuery.error instanceof Error
+                          ? waterQualityQuery.error.message
+                          : undefined
+                      }
+                      isLoading={waterQualityQuery.isLoading}
+                      report={waterQualityQuery.data}
                     />
                   </div>
                 </div>

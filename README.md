@@ -76,6 +76,11 @@ npm run build
 
 Equivalent commands can be run with pnpm, yarn, or bun if preferred.
 
+For local worker-backed development, run the Cloudflare Worker from
+`cloudflare/movebank-worker` with `npm run dev`. The worker dev script is pinned
+to `http://127.0.0.1:8787` so it matches the Vite proxy targets for
+`/api/movebank` and `/api/weather`.
+
 ## Key Docs
 
 - [Architecture](docs/architecture.md)

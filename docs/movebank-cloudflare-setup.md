@@ -43,6 +43,19 @@ npx wrangler secret put OPEN_WEATHER_KEY
 - `https://your-domain.com/api/movebank/*`
 - `https://your-domain.com/api/weather/*`
 
+## Local development
+
+Run the Worker locally from `cloudflare/movebank-worker` with:
+
+```bash
+npm run dev
+```
+
+The local dev script is pinned to `http://127.0.0.1:8787` because the Vite app
+proxy forwards `/api/movebank/*` and `/api/weather/*` to that exact origin. If
+the Worker is allowed to auto-select a different port, the browser requests will
+hang instead of returning data.
+
 ## Endpoint contract expected by frontend
 
 ### GET /api/movebank/tracks

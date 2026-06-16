@@ -8,6 +8,10 @@ Ocean Planner is a static planning app for comparing Southern California ocean c
 The single UI module that groups all water-quality information for a selected location and date. It contains distinct subsections for advisory status, discrete samples, and near-real-time sensor context rather than blending them into one undifferentiated feed.
 _Avoid_: Unified feed, blended water status
 
+**User-first heading**:
+A subsection heading written in terms of the user's decision or the kind of evidence shown, not the upstream provider name. Source names should appear as supporting provenance labels rather than lead the section hierarchy.
+_Avoid_: Source-first heading, provider-first title
+
 **County advisory**:
 The official beach safety or closure status published by a county or local authority. It is the authoritative status signal and is not interchangeable with sample or sensor context, and when live integration is unavailable the UI should direct the user to the official advisory source.
 _Avoid_: Live sample status, sensor advisory

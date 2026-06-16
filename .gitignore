@@ -5,6 +5,7 @@ dist/
 !.env.example
 *.local
 .dev.vars
+.wrangler/
 .DS_Store
 Thumbs.db
 *.tsbuildinfo

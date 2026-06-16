@@ -10,4 +10,7 @@ MAX_DAYS_BACK = "30"
 MAX_RADIUS_KM = "100"
 
 # Add routes in your Cloudflare dashboard or uncomment and set these values.
-# routes = [{ pattern = "your-domain.com/api/movebank/*", zone_name = "your-domain.com" }]
+# routes = [
+#   { pattern = "your-domain.com/api/movebank/*", zone_name = "your-domain.com" },
+#   { pattern = "your-domain.com/api/weather/*", zone_name = "your-domain.com" },
+# ]

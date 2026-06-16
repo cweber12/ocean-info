@@ -9,6 +9,10 @@ export default defineConfig({
         target: "http://127.0.0.1:8787",
         changeOrigin: true,
       },
+      "/api/weather": {
+        target: "http://127.0.0.1:8787",
+        changeOrigin: true,
+      },
       "/api/ndbc": {
         target: "https://www.ndbc.noaa.gov",
         changeOrigin: true,

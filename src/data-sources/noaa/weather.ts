@@ -23,21 +23,21 @@ export async function fetchMarineWeatherReport({
   tideStation,
 }: MarineWeatherReportRequest): Promise<MarineWeatherReport> {
   const [forecast, fallbackWeather, observations, waves] = await Promise.all([
-    fetchOptional(() =>
+    fetchOptional("NWS forecast", () =>
       fetchNwsWeatherForecast({
         date,
         latitude: location.point.latitude,
         longitude: location.point.longitude,
       }),
     ),
-    fetchOptional(() =>
+    fetchOptional("OpenWeather fallback", () =>
       fetchOpenWeatherFallback({
         date,
         latitude: location.point.latitude,
         longitude: location.point.longitude,
       }),
     ),
-    fetchOptional(() =>
+    fetchOptional("NOAA observations", () =>
       fetchCoopsObservationSummary({
         currentStationId: location.stationHints?.currentStationId,
         date,
@@ -46,7 +46,7 @@ export async function fetchMarineWeatherReport({
       }),
     ),
     location.stationHints?.buoyStationId
-      ? fetchOptional(() =>
+      ? fetchOptional("NDBC waves", () =>
           fetchNdbcWaveObservation({
             date,
             stationId: location.stationHints?.buoyStationId ?? "",
@@ -166,10 +166,17 @@ function getWeatherSourceName({
   return "Weather unavailable";
 }
 
-async function fetchOptional<T>(request: () => Promise<T>): Promise<T | undefined> {
+async function fetchOptional<T>(
+  label: string,
+  request: () => Promise<T>,
+): Promise<T | undefined> {
   try {
     return await request();
-  } catch {
+  } catch (error) {
+    console.warn(
+      `[marine-weather] ${label} failed`,
+      error instanceof Error ? error.message : error,
+    );
     return undefined;
   }
 }

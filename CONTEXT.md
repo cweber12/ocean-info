@@ -16,6 +16,14 @@ _Avoid_: Live sample status, sensor advisory
 A discrete water-quality sample from the Water Quality Portal. It is dated laboratory or field sample evidence, not a live beach status feed.
 _Avoid_: Live reading, advisory status
 
+**WQP bacteria samples**:
+The subset of WQP samples used as recent microbial safety context, such as Enterococcus, E. coli, and coliform measurements. They should be presented separately from chemistry samples because they carry different safety meaning.
+_Avoid_: General recent samples, live advisory
+
+**WQP chemistry samples**:
+The subset of WQP samples used as broader water-condition context, separate from microbial safety evidence. They support interpretation but should not visually compete with bacteria samples for safety status.
+_Avoid_: Bacteria status, advisory feed
+
 **SCCOOS observation**:
 A near-real-time ocean sensor observation from the SCCOOS Scripps Pier station. It provides environmental context and is not a substitute for beach-specific advisory status.
 _Avoid_: Beach closure status, county advisory

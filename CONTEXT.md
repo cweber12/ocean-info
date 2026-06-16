@@ -9,7 +9,7 @@ The single UI module that groups all water-quality information for a selected lo
 _Avoid_: Unified feed, blended water status
 
 **County advisory**:
-The official beach safety or closure status published by a county or local authority. It is the authoritative status signal and is not interchangeable with sample or sensor context.
+The official beach safety or closure status published by a county or local authority. It is the authoritative status signal and is not interchangeable with sample or sensor context, and when live integration is unavailable the UI should direct the user to the official advisory source.
 _Avoid_: Live sample status, sensor advisory
 
 **WQP sample**:

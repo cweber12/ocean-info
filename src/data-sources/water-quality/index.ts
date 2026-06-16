@@ -22,8 +22,9 @@ import {
 
 const advisoryPlaceholder = {
   status: "not_integrated" as const,
-  sourceName: "County advisory",
-  message: "Not integrated yet. Use county advisory sources for current closures or posted warnings.",
+  sourceName: "San Diego County beach advisories",
+  message: "Current closures and posted warnings are not yet integrated in Ocean Planner.",
+  advisoryUrl: "https://cosdapps.sandiegocounty.gov/sdbeachinfo/",
 };
 
 export interface WaterQualityReportRequest {

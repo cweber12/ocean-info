@@ -12,6 +12,10 @@ _Avoid_: Unified feed, blended water status
 A subsection heading written in terms of the user's decision or the kind of evidence shown, not the upstream provider name. Source names should appear as supporting provenance labels rather than lead the section hierarchy.
 _Avoid_: Source-first heading, provider-first title
 
+**Provenance note**:
+A lightweight line of source context that explains where a sample or observation came from without occupying a primary summary slot. Provenance supports trust and interpretation but should stay visually subordinate to current conditions and official status.
+_Avoid_: Primary stat, headline metric
+
 **County advisory**:
 The official beach safety or closure status published by a county or local authority. It is the authoritative status signal and is not interchangeable with sample or sensor context, and when live integration is unavailable the UI should direct the user to the official advisory source.
 _Avoid_: Live sample status, sensor advisory

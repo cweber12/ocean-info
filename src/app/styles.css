@@ -2166,6 +2166,11 @@ button:focus-visible {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
 }
 
+.water-quality-section-stack {
+  display: grid;
+  gap: var(--space-3);
+}
+
 .water-quality-list {
   display: grid;
   gap: var(--space-2);
@@ -2173,6 +2178,13 @@ button:focus-visible {
   background: color-mix(in srgb, var(--color-bg-secondary) 74%, var(--color-surface-glass-card));
   border: 1px solid var(--color-border-secondary);
   border-radius: var(--border-radius-sm);
+}
+
+.water-quality-section-header {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
 }
 
 .water-quality-list header h4 {
@@ -2183,6 +2195,18 @@ button:focus-visible {
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--letter-spacing-wide);
   text-transform: uppercase;
+}
+
+.water-quality-section-header span {
+  padding: 0.15rem 0.5rem;
+  color: var(--color-text-tertiary);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--surface-subtle) 84%, transparent);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-full);
 }
 
 .water-quality-list ol {
@@ -2232,6 +2256,93 @@ button:focus-visible {
   place-items: center;
   border: 1px dashed var(--color-border-secondary);
   border-radius: var(--border-radius-sm);
+}
+
+.water-quality-status-card,
+.water-quality-provenance-note {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: color-mix(in srgb, var(--color-bg-secondary) 68%, var(--color-bg-primary));
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
+.water-quality-status-card {
+  gap: var(--space-3);
+}
+
+.water-quality-status-copy {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.water-quality-status-copy strong,
+.water-quality-provenance-note strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
+}
+
+.water-quality-status-copy p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.water-quality-cta,
+.water-quality-action-link {
+  width: fit-content;
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  color: var(--color-accent-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.water-quality-cta {
+  min-height: 2.5rem;
+  padding: 0 var(--space-3);
+  background: color-mix(in srgb, var(--color-accent-activity-soft) 46%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 26%, var(--color-border-secondary));
+  border-radius: var(--border-radius-full);
+}
+
+.water-quality-cta:hover,
+.water-quality-action-link:hover {
+  color: color-mix(in srgb, var(--color-accent-primary) 76%, var(--color-text-primary));
+}
+
+.water-quality-action-link {
+  margin-top: var(--space-1);
+}
+
+.water-quality-stat-action {
+  display: flex;
+}
+
+.water-quality-provenance-note span {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.water-quality-provenance-note small,
+.water-quality-section-note {
+  margin: 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
 }
 
 .water-quality-panel-grid {

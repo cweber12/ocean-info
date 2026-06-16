@@ -1,4 +1,6 @@
+import type { ReactNode } from "react";
 import {
+  ArrowUpRight,
   CircleDashed,
   FlaskConical,
   LoaderCircle,
@@ -6,6 +8,7 @@ import {
   RadioTower,
   ShieldAlert,
   TriangleAlert,
+  Waves,
 } from "lucide-react";
 import type { ActivityId } from "../../activities";
 import type {
@@ -64,6 +67,9 @@ export function WaterQualityReport({
   }
 
   const nearestStation = report.stations.find((station) => station.source === "WQP");
+  const currentConditionInsights = getCurrentConditionInsights(report.insights);
+  const bacteriaInsights = getBacteriaInsights(report.insights);
+  const chemistryInsights = getChemistryInsights(report.insights);
 
   return (
     <section
@@ -79,54 +85,78 @@ export function WaterQualityReport({
           <header className="api-data-card-header">
             <div>
               <p className="eyebrow">Water quality</p>
-              <h3>WQP samples and SCCOOS sensor context</h3>
+              <h3>Official status, current conditions, and recent samples</h3>
             </div>
-            <span>WQP + SCCOOS</span>
+            <span>County + SCCOOS + WQP</span>
           </header>
 
           <div className="api-data-card-content">
             <div className="weather-stat-grid weather-stat-grid-dual">
               <WaterSummaryStat
                 icon={ShieldAlert}
-                label="County advisory"
-                value="Not integrated yet"
-                detail={report.advisoryStatus.message}
-              />
-              <WaterSummaryStat
-                icon={MapPin}
-                label="Nearest WQP station"
-                value={nearestStation?.name ?? "No nearby station"}
-                detail={nearestStation ? formatStationDetail(nearestStation) : "No WQP station metadata in range"}
-              />
-              <WaterSummaryStat
-                icon={FlaskConical}
-                label="Nearby WQP samples"
-                value={`${report.recentBacteriaSamples.length + report.recentChemistrySamples.length} shown`}
-                detail="WQP = discrete water-quality samples"
+                label="Official status"
+                value="Check official advisory"
+                detail="Current closures and posted warnings live on the county site."
+                action={
+                  report.advisoryStatus.advisoryUrl ? (
+                    <a
+                      className="water-quality-action-link"
+                      href={report.advisoryStatus.advisoryUrl}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Open county page
+                      <ArrowUpRight aria-hidden="true" size={14} strokeWidth={2.2} />
+                    </a>
+                  ) : null
+                }
               />
               <WaterSummaryStat
                 icon={RadioTower}
-                label="Latest SCCOOS sensor"
-                value={report.latestOceanObservation ? formatDateTime(report.latestOceanObservation.observedAt) : "Unavailable"}
-                detail="SCCOOS = near-real-time ocean sensor data"
+                label="Latest sensor"
+                value={
+                  report.latestOceanObservation
+                    ? formatDateTime(report.latestOceanObservation.observedAt)
+                    : "Unavailable"
+                }
+                detail="Near-real-time SCCOOS context from Scripps Pier."
+              />
+              <WaterSummaryStat
+                icon={Waves}
+                label="Water temp"
+                value={formatTemperature(report.latestOceanObservation?.waterTemperatureC)}
+                detail="Latest SCCOOS surface water reading."
+              />
+              <WaterSummaryStat
+                icon={FlaskConical}
+                label="Turbidity"
+                value={formatMaybeNumber(report.latestOceanObservation?.turbidityNtu, "NTU")}
+                detail="Preferred quick clarity and runoff proxy."
               />
             </div>
 
-            <div className="water-quality-panel-grid">
+            <div className="water-quality-section-stack">
+              <OfficialStatusSection advisoryStatus={report.advisoryStatus} />
+              <OceanConditionsSection
+                insights={currentConditionInsights}
+                observation={report.latestOceanObservation}
+              />
+              <WqpProvenanceNote nearestStation={nearestStation} />
               <DataSection
                 emptyMessage="No recent WQP bacteria samples found nearby."
                 items={report.recentBacteriaSamples}
-                title="WQP nearby bacteria samples"
+                insights={bacteriaInsights}
+                sourceLabel="WQP"
+                title="Recent bacteria samples"
               />
               <DataSection
                 emptyMessage="No recent WQP chemistry samples found nearby."
                 items={report.recentChemistrySamples}
-                title="WQP nearby chemistry samples"
+                insights={chemistryInsights}
+                sourceLabel="WQP"
+                title="Recent chemistry samples"
               />
             </div>
-
-            <OceanConditionsSection observation={report.latestOceanObservation} />
-            <InsightsSection insights={report.insights} />
 
             {report.errors.length > 0 ? (
               <div className="water-quality-inline-note">
@@ -136,7 +166,8 @@ export function WaterQualityReport({
             ) : null}
 
             <p className="weather-source-note">
-              County advisory = official beach safety status, not yet integrated. {getActivityHint(activityId)}
+              County advisory is the official status source. SCCOOS provides Scripps Pier sensor context. WQP provides discrete sample evidence.{" "}
+              {getActivityHint(activityId)}
             </p>
           </div>
         </article>
@@ -146,15 +177,17 @@ export function WaterQualityReport({
 }
 
 function WaterSummaryStat({
+  action,
   detail,
   icon: Icon,
   label,
   value,
 }: {
-  detail: string;
+  action?: ReactNode;
+  detail: ReactNode;
   icon: typeof ShieldAlert;
   label: string;
-  value: string;
+  value: ReactNode;
 }) {
   return (
     <div className="weather-stat">
@@ -164,24 +197,61 @@ function WaterSummaryStat({
       </span>
       <strong>{value}</strong>
       <small>{detail}</small>
+      {action ? <div className="water-quality-stat-action">{action}</div> : null}
     </div>
+  );
+}
+
+function OfficialStatusSection({
+  advisoryStatus,
+}: {
+  advisoryStatus: WaterQualityReportData["advisoryStatus"];
+}) {
+  return (
+    <section className="water-quality-list" aria-labelledby="water-quality-official-status-heading">
+      <SectionHeader
+        sourceLabel="County"
+        title="Official status"
+      />
+
+      <div className="water-quality-status-card">
+        <div className="water-quality-status-copy">
+          <strong>Check official county advisory</strong>
+          <p>{advisoryStatus.message}</p>
+        </div>
+
+        {advisoryStatus.advisoryUrl ? (
+          <a
+            className="water-quality-cta"
+            href={advisoryStatus.advisoryUrl}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Visit {advisoryStatus.sourceName}
+            <ArrowUpRight aria-hidden="true" size={15} strokeWidth={2.2} />
+          </a>
+        ) : null}
+      </div>
+    </section>
   );
 }
 
 function DataSection({
   emptyMessage,
   items,
+  insights,
+  sourceLabel,
   title,
 }: {
   emptyMessage: string;
   items: WaterQualitySample[];
+  insights: WaterQualityInsight[];
+  sourceLabel: string;
   title: string;
 }) {
   return (
-    <section className="water-quality-list" aria-label={title}>
-      <header>
-        <h4>{title}</h4>
-      </header>
+    <section className="water-quality-list" aria-labelledby={buildSectionHeadingId(title)}>
+      <SectionHeader sourceLabel={sourceLabel} title={title} />
 
       {items.length > 0 ? (
         <ol>
@@ -208,33 +278,47 @@ function DataSection({
           />
         </div>
       )}
+
+      <InsightCards insights={insights} />
     </section>
   );
 }
 
 function OceanConditionsSection({
+  insights,
   observation,
 }: {
+  insights: WaterQualityInsight[];
   observation?: OceanConditionObservation;
 }) {
   return (
-    <section className="water-quality-list" aria-label="SCCOOS current ocean conditions">
-      <header>
-        <h4>SCCOOS current ocean conditions</h4>
-      </header>
+    <section
+      className="water-quality-list"
+      aria-labelledby="water-quality-current-ocean-conditions-heading"
+    >
+      <SectionHeader
+        sourceLabel="SCCOOS"
+        title="Current ocean conditions"
+      />
 
       {observation ? (
-        <div className="water-quality-metric-grid">
-          <Metric label="Water temp" value={formatTemperature(observation.waterTemperatureC)} />
-          <Metric label="Salinity" value={formatMaybeNumber(observation.salinityPsu, "PSU")} />
-          <Metric label="Chlorophyll" value={formatMaybeNumber(observation.chlorophyllUgL, "ug/L")} />
-          <Metric label="Turbidity" value={formatMaybeNumber(observation.turbidityNtu, "NTU")} />
-          <Metric label="pH" value={formatMaybeNumber(observation.phTotalScale)} />
-          <Metric
-            label="Oxygen"
-            value={formatDissolvedOxygen(observation)}
-          />
-        </div>
+        <>
+          <div className="water-quality-metric-grid">
+            <Metric label="Water temp" value={formatTemperature(observation.waterTemperatureC)} />
+            <Metric label="Salinity" value={formatMaybeNumber(observation.salinityPsu, "PSU")} />
+            <Metric label="Chlorophyll" value={formatMaybeNumber(observation.chlorophyllUgL, "ug/L")} />
+            <Metric label="Turbidity" value={formatMaybeNumber(observation.turbidityNtu, "NTU")} />
+            <Metric label="pH" value={formatMaybeNumber(observation.phTotalScale)} />
+            <Metric
+              label="Oxygen"
+              value={formatDissolvedOxygen(observation)}
+            />
+          </div>
+
+          <p className="water-quality-section-note">
+            Latest near-real-time sensor context from Scripps Pier. Use it as environmental context, not as a beach-specific closure status.
+          </p>
+        </>
       ) : (
         <div className="water-quality-empty">
           <ReportState
@@ -245,43 +329,79 @@ function OceanConditionsSection({
           />
         </div>
       )}
+
+      <InsightCards insights={insights} />
     </section>
   );
 }
 
-function InsightsSection({
+function WqpProvenanceNote({
+  nearestStation,
+}: {
+  nearestStation?: WaterQualityReportData["stations"][number];
+}) {
+  return (
+    <div className="water-quality-provenance-note" role="note">
+      <span>
+        <MapPin aria-hidden="true" size={14} strokeWidth={2.2} />
+        Nearest WQP station
+      </span>
+      <strong>{nearestStation?.name ?? "No nearby station metadata"}</strong>
+      <small>
+        {nearestStation
+          ? formatStationDetail(nearestStation)
+          : "No WQP station metadata was returned in this search area."}
+      </small>
+    </div>
+  );
+}
+
+function InsightCards({
   insights,
 }: {
   insights: WaterQualityInsight[];
 }) {
-  return (
-    <section className="water-quality-list" aria-label="Water quality insights">
-      <header>
-        <h4>Insights</h4>
-      </header>
+  if (insights.length === 0) {
+    return null;
+  }
 
-      <div className="water-quality-insights">
-        {insights.map((insight) => (
-          <article className="water-quality-insight" key={insight.id}>
-            <div className="water-quality-insight-header">
-              <strong>{insight.title}</strong>
-              <span data-severity={insight.severity}>{insight.severity}</span>
-            </div>
-            <p>{insight.summary}</p>
-            {insight.evidence.length > 0 ? (
-              <small>
-                {insight.evidence
-                  .map((item) => {
-                    const value = item.value !== undefined ? `: ${item.value}${item.unit ? ` ${item.unit}` : ""}` : "";
-                    return `${item.label}${value}`;
-                  })
-                  .join(" • ")}
-              </small>
-            ) : null}
-          </article>
-        ))}
-      </div>
-    </section>
+  return (
+    <div className="water-quality-insights">
+      {insights.map((insight) => (
+        <article className="water-quality-insight" key={insight.id}>
+          <div className="water-quality-insight-header">
+            <strong>{insight.title}</strong>
+            <span data-severity={insight.severity}>{insight.severity}</span>
+          </div>
+          <p>{insight.summary}</p>
+          {insight.evidence.length > 0 ? (
+            <small>
+              {insight.evidence
+                .map((item) => {
+                  const value = item.value !== undefined ? `: ${item.value}${item.unit ? ` ${item.unit}` : ""}` : "";
+                  return `${item.label}${value}`;
+                })
+                .join(" • ")}
+            </small>
+          ) : null}
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function SectionHeader({
+  sourceLabel,
+  title,
+}: {
+  sourceLabel: string;
+  title: string;
+}) {
+  return (
+    <header className="water-quality-section-header">
+      <h4 id={buildSectionHeadingId(title)}>{title}</h4>
+      <span>{sourceLabel}</span>
+    </header>
   );
 }
 
@@ -402,4 +522,35 @@ function getActivityHint(activityId: ActivityId): string {
   }
 
   return "Use these readings as context alongside tides, weather, and local advisories.";
+}
+
+function buildSectionHeadingId(title: string) {
+  return `water-quality-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-heading`;
+}
+
+function getCurrentConditionInsights(insights: WaterQualityInsight[]) {
+  return insights.filter(
+    (insight) =>
+      insight.evidence.some((item) => item.source === "SCCOOS") ||
+      insight.category === "water_temperature" ||
+      insight.category === "runoff" ||
+      insight.category === "visibility" ||
+      insight.category === "algae" ||
+      insight.category === "oxygen",
+  );
+}
+
+function getBacteriaInsights(insights: WaterQualityInsight[]) {
+  return insights.filter(
+    (insight) => insight.category === "bacteria" || insight.id === "wqp-bacteria-gap",
+  );
+}
+
+function getChemistryInsights(insights: WaterQualityInsight[]) {
+  const currentInsightIds = new Set(getCurrentConditionInsights(insights).map((insight) => insight.id));
+  const bacteriaInsightIds = new Set(getBacteriaInsights(insights).map((insight) => insight.id));
+
+  return insights.filter(
+    (insight) => !currentInsightIds.has(insight.id) && !bacteriaInsightIds.has(insight.id),
+  );
 }

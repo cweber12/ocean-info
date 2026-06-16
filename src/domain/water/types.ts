@@ -118,6 +118,7 @@ export interface WaterQualityAdvisoryStatus {
   status: "not_integrated";
   sourceName: string;
   message: string;
+  advisoryUrl?: string;
 }
 
 export interface WaterQualityReport {

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { WaterDataError } from "../../domain/water/types";
 
-type WaterSource = "WQP" | "SCCOOS";
+type WaterSource = "WQP" | "SCCOOS" | "County";
 
 export async function fetchJsonWithSchema<T>({
   source,

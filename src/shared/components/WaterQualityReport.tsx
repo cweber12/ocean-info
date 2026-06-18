@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import type { ActivityId } from "../../activities";
 import type {
+  CountyWaterQualityEvent,
   OceanConditionObservation,
+  WaterQualityAdvisoryStatus,
   WaterQualityInsight,
   WaterQualityReport as WaterQualityReportData,
   WaterQualitySample,
@@ -40,7 +42,7 @@ export function WaterQualityReport({
         </h2>
         <div className="water-quality-loading">
           <ReportState
-            detail="Loading WQP discrete samples and SCCOOS near-real-time sensor observations."
+            detail="Loading county advisory status, WQP discrete samples, and SCCOOS near-real-time sensor observations."
             icon={LoaderCircle}
             title="Loading water quality report"
           />
@@ -95,8 +97,8 @@ export function WaterQualityReport({
               <WaterSummaryStat
                 icon={ShieldAlert}
                 label="Official status"
-                value="Check official advisory"
-                detail="Current closures and posted warnings live on the county site."
+                value={formatAdvisorySummaryValue(report.advisoryStatus)}
+                detail={formatAdvisorySummaryDetail(report.advisoryStatus)}
                 action={
                   report.advisoryStatus.advisoryUrl ? (
                     <a
@@ -136,7 +138,10 @@ export function WaterQualityReport({
             </div>
 
             <div className="water-quality-section-stack">
-              <OfficialStatusSection advisoryStatus={report.advisoryStatus} />
+              <OfficialStatusSection
+                advisoryStatus={report.advisoryStatus}
+                countyEvents={report.countyEvents}
+              />
               <OceanConditionsSection
                 insights={currentConditionInsights}
                 observation={report.latestOceanObservation}
@@ -204,9 +209,13 @@ function WaterSummaryStat({
 
 function OfficialStatusSection({
   advisoryStatus,
+  countyEvents,
 }: {
   advisoryStatus: WaterQualityReportData["advisoryStatus"];
+  countyEvents: WaterQualityReportData["countyEvents"];
 }) {
+  const supportingMeta = getAdvisorySupportingMeta(advisoryStatus);
+
   return (
     <section className="water-quality-list" aria-labelledby="water-quality-official-status-heading">
       <SectionHeader
@@ -216,8 +225,11 @@ function OfficialStatusSection({
 
       <div className="water-quality-status-card">
         <div className="water-quality-status-copy">
-          <strong>Check official county advisory</strong>
+          <strong>{formatAdvisoryHeadline(advisoryStatus)}</strong>
           <p>{advisoryStatus.message}</p>
+          {supportingMeta.length > 0 ? (
+            <small>{supportingMeta.join(" • ")}</small>
+          ) : null}
         </div>
 
         {advisoryStatus.advisoryUrl ? (
@@ -232,6 +244,23 @@ function OfficialStatusSection({
           </a>
         ) : null}
       </div>
+
+      {countyEvents.length > 0 ? (
+        <ol>
+          {countyEvents.map((event) => (
+            <li key={buildCountyEventKey(event)}>
+              <div>
+                <strong>{formatCountyEventTitle(event)}</strong>
+                <small>{formatCountyEventMeta(event)}</small>
+              </div>
+              <div>
+                <strong>{formatCountyEventStatus(event.status)}</strong>
+                <small>{formatCountyEventTiming(event)}</small>
+              </div>
+            </li>
+          ))}
+        </ol>
+      ) : null}
     </section>
   );
 }
@@ -483,6 +512,114 @@ function formatDateTime(value: string): string {
 function formatStationDetail(station: WaterQualityReportData["stations"][number]) {
   const parts = [station.siteType, station.provider].filter((part): part is string => Boolean(part));
   return parts.join(" • ") || station.stationId;
+}
+
+function formatAdvisorySummaryValue(advisoryStatus: WaterQualityAdvisoryStatus) {
+  switch (advisoryStatus.status) {
+    case "open":
+      return "Open";
+    case "advisory":
+      return "Advisory";
+    case "warning":
+      return "Warning";
+    case "closure":
+      return "Closure";
+    case "unavailable":
+      return "County data unavailable";
+    case "not_integrated":
+      return "Check official advisory";
+  }
+}
+
+function formatAdvisorySummaryDetail(advisoryStatus: WaterQualityAdvisoryStatus) {
+  switch (advisoryStatus.status) {
+    case "open":
+      return "Official county status for the selected beach.";
+    case "advisory":
+    case "warning":
+    case "closure":
+      return advisoryStatus.message;
+    case "unavailable":
+      return "County advisory details could not be loaded right now.";
+    case "not_integrated":
+      return "Current closures and posted warnings live on the county site.";
+  }
+}
+
+function formatAdvisoryHeadline(advisoryStatus: WaterQualityAdvisoryStatus) {
+  switch (advisoryStatus.status) {
+    case "open":
+      return "Official county status: open";
+    case "advisory":
+      return "Official county advisory";
+    case "warning":
+      return "Official county warning";
+    case "closure":
+      return "Official county closure";
+    case "unavailable":
+      return "County advisory unavailable";
+    case "not_integrated":
+      return "Check official county advisory";
+  }
+}
+
+function getAdvisorySupportingMeta(advisoryStatus: WaterQualityAdvisoryStatus) {
+  const beachName = "beachName" in advisoryStatus ? advisoryStatus.beachName : undefined;
+  const stationId = "stationId" in advisoryStatus ? advisoryStatus.stationId : undefined;
+  const issuedAt = "issuedAt" in advisoryStatus ? advisoryStatus.issuedAt : undefined;
+
+  return [
+    beachName,
+    stationId ? `Station ${stationId}` : undefined,
+    issuedAt ? `Since ${formatDateTime(issuedAt)}` : undefined,
+  ].filter((part): part is string => Boolean(part));
+}
+
+function formatCountyEventStatus(status: CountyWaterQualityEvent["status"]) {
+  switch (status) {
+    case "open":
+      return "Open";
+    case "advisory":
+      return "Advisory";
+    case "warning":
+      return "Warning";
+    case "closure":
+      return "Closure";
+  }
+}
+
+function buildCountyEventKey(event: CountyWaterQualityEvent) {
+  return `${event.siteId}|${event.eventId}`;
+}
+
+function formatCountyEventTitle(event: CountyWaterQualityEvent) {
+  const title = event.locationName
+    ? `${event.locationName} - ${event.beachName}`
+    : event.beachName;
+
+  return event.publicNotification ?? title;
+}
+
+function formatCountyEventMeta(event: CountyWaterQualityEvent) {
+  const parts = [
+    event.locationName && event.locationName !== event.beachName ? event.locationName : undefined,
+    event.city,
+    event.stationId ? `Station ${event.stationId}` : undefined,
+  ].filter((part): part is string => Boolean(part));
+
+  return parts.join(" • ") || "County advisory event";
+}
+
+function formatCountyEventTiming(event: CountyWaterQualityEvent) {
+  if (event.issuedAt) {
+    return `Issued ${formatDateTime(event.issuedAt)}`;
+  }
+
+  if (event.liftedAt) {
+    return `Lifted ${formatDateTime(event.liftedAt)}`;
+  }
+
+  return "Timing unavailable";
 }
 
 function formatTemperature(value?: number) {

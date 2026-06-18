@@ -107,7 +107,7 @@ export interface WaterQualityInsight {
 }
 
 export interface WaterDataError {
-  source: "WQP" | "SCCOOS";
+  source: "WQP" | "SCCOOS" | "County";
   requestUrl?: string;
   status?: number;
   message: string;

@@ -20,6 +20,18 @@ _Avoid_: Primary stat, headline metric
 The official beach safety or closure status published by a county or local authority. It is the authoritative status signal and is not interchangeable with sample or sensor context, and when live integration is unavailable the UI should direct the user to the official advisory source.
 _Avoid_: Live sample status, sensor advisory
 
+**County advisory site mapping**:
+The stable link between a curated Ocean Planner location and the official county beach/site record used for advisory status. It should be explicit and curated rather than inferred from display names at runtime.
+_Avoid_: Beach name guess, fuzzy county match
+
+**Primary county status**:
+The single official county advisory state shown for the selected location after applying source-defined severity and recency rules. It is the planner-facing answer, distinct from the underlying county event records that support it.
+_Avoid_: Event list, blended advisory detail
+
+**County event**:
+An individual official county advisory, warning, or closure record attached to one or more county sites. County events support the primary county status but should remain separate from the summary status contract.
+_Avoid_: Summary status, live sample
+
 **WQP sample**:
 A discrete water-quality sample from the Water Quality Portal. It is dated laboratory or field sample evidence, not a live beach status feed.
 _Avoid_: Live reading, advisory status

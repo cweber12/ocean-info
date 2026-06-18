@@ -116,6 +116,7 @@ export async function fetchWaterQualityReport({
   return {
     date,
     advisoryStatus: advisoryPlaceholder,
+    countyEvents: [],
     stations,
     wqpSamples,
     recentBacteriaSamples,

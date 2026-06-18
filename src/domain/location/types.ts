@@ -9,6 +9,7 @@ export interface StationHints {
   tideStationId?: string;
   buoyStationId?: string;
   currentStationId?: string;
+  countyAdvisoryStationId?: string;
   weatherPoint?: GeoPoint;
   weatherGridId?: string;
   waterQualityAreaId?: string;

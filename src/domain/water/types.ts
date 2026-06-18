@@ -114,16 +114,62 @@ export interface WaterDataError {
   retryable: boolean;
 }
 
-export interface WaterQualityAdvisoryStatus {
-  status: "not_integrated";
+export type CountyAdvisoryStatus =
+  | "open"
+  | "advisory"
+  | "warning"
+  | "closure";
+
+export type WaterQualityAdvisoryStatusKind =
+  | CountyAdvisoryStatus
+  | "not_integrated"
+  | "unavailable";
+
+interface WaterQualityAdvisoryStatusBase {
   sourceName: string;
   message: string;
   advisoryUrl?: string;
 }
 
+export interface CountyWaterQualityEvent {
+  source: "County";
+  siteId: string;
+  eventId: string;
+  status: CountyAdvisoryStatus;
+  beachName: string;
+  locationName?: string;
+  stationId?: string;
+  city?: string;
+  issuedAt?: string;
+  liftedAt?: string;
+  latitude?: number;
+  longitude?: number;
+  publicNotification?: string;
+  descriptionIssue?: string;
+  descriptionLifted?: string;
+  raw: unknown;
+}
+
+export type WaterQualityAdvisoryStatus =
+  | (WaterQualityAdvisoryStatusBase & {
+      status: "not_integrated";
+    })
+  | (WaterQualityAdvisoryStatusBase & {
+      status: "unavailable";
+    })
+  | (WaterQualityAdvisoryStatusBase & {
+      status: CountyAdvisoryStatus;
+      issuedAt?: string;
+      liftedAt?: string;
+      stationId?: string;
+      beachName?: string;
+      countyEventId?: string;
+    });
+
 export interface WaterQualityReport {
   date: string;
   advisoryStatus: WaterQualityAdvisoryStatus;
+  countyEvents: CountyWaterQualityEvent[];
   stations: MonitoringStation[];
   wqpSamples: WaterQualitySample[];
   recentBacteriaSamples: WaterQualitySample[];

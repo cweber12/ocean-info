@@ -5,6 +5,7 @@ import type {
   WaterQualityReport,
   WaterQualitySample,
 } from "../../domain/water/types";
+import { fetchCountyAdvisoryReport } from "./countyAdvisoriesClient";
 import {
   isBacteriaParameter,
   WQP_BACTERIA_CHARACTERISTICS,
@@ -19,13 +20,6 @@ import {
   getLocationScopedWaterQualityBox,
   normalizeFetchedWqpResults,
 } from "./wqpClient";
-
-const advisoryPlaceholder = {
-  status: "not_integrated" as const,
-  sourceName: "San Diego County beach advisories",
-  message: "Current closures and posted warnings are not yet integrated in Ocean Planner.",
-  advisoryUrl: "https://cosdapps.sandiegocounty.gov/sdbeachinfo/",
-};
 
 export interface WaterQualityReportRequest {
   date: string;
@@ -44,6 +38,9 @@ export async function fetchWaterQualityReport({
   let stations = [SCCOOS_SCRIPPS_STATION];
   let wqpSamples: WaterQualitySample[] = [];
   let observations: OceanConditionObservation[] = [];
+  const countyReport = await fetchCountyAdvisoryReport({ location });
+
+  errors.push(...countyReport.errors);
 
   try {
     const wqpStations = await fetchWqpStations({
@@ -115,8 +112,8 @@ export async function fetchWaterQualityReport({
 
   return {
     date,
-    advisoryStatus: advisoryPlaceholder,
-    countyEvents: [],
+    advisoryStatus: countyReport.advisoryStatus,
+    countyEvents: countyReport.countyEvents,
     stations,
     wqpSamples,
     recentBacteriaSamples,

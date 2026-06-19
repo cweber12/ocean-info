@@ -18,6 +18,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/ndbc/, ""),
       },
+      "/api/usgs": {
+        target: "https://api.waterdata.usgs.gov/ogcapi/v0",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/usgs/, ""),
+      },
     },
   },
 });

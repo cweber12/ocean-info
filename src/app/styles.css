@@ -2856,6 +2856,13 @@ button:focus-visible {
       "chart";
   }
 
+  .water-quality-card-grid .api-data-card {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "header"
+      "content";
+  }
+
   .weather-card-grid .api-data-card-chart {
     min-height: 14rem;
   }

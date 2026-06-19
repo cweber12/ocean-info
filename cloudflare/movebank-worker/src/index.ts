@@ -93,8 +93,22 @@ const corsHeaders = {
   "access-control-allow-origin": "*",
 };
 
+class UpstreamError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "UpstreamError";
+    this.status = status;
+  }
+}
+
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<Response> {
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders, status: 204 });
     }
@@ -106,7 +120,7 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname.endsWith("/tracks")) {
-      return handleTracksRequest(url, request, env);
+      return handleTracksRequest(url, request, env, ctx);
     }
 
     if (url.pathname.endsWith("/fallback")) {
@@ -121,6 +135,7 @@ async function handleTracksRequest(
   url: URL,
   request: Request,
   env: Env,
+  ctx: ExecutionContext,
 ): Promise<Response> {
   let query: RequestQuery;
 
@@ -146,6 +161,9 @@ async function handleTracksRequest(
     );
   }
 
+  const cache = caches.default;
+  const cacheKey = new Request(url.toString(), { method: "GET" });
+
   try {
     const tracks = await fetchTracks({
       allowedStudyIds,
@@ -164,12 +182,41 @@ async function handleTracksRequest(
       tracks,
     };
 
-    return json(payload, 200, {
+    const response = json(payload, 200, {
       "cache-control": "public, max-age=120, stale-while-revalidate=300",
     });
+
+    // Cache the fresh result so repeat queries (refetches, retries, other
+    // visitors) avoid hitting Movebank again and triggering rate limits.
+    ctx.waitUntil(cache.put(cacheKey, response.clone()));
+
+    return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("Movebank fetch failed", message);
+
+    // Serve the last good response if we have one, rather than failing the
+    // secondary tracking panel because of a transient upstream hiccup.
+    const cached = await cache.match(cacheKey);
+    if (cached) {
+      const staleResponse = new Response(cached.body, cached);
+      staleResponse.headers.set("x-movebank-cache", "stale");
+      return staleResponse;
+    }
+
+    // Movebank rate limits aggressively. Degrade gracefully to an empty result
+    // (HTTP 200) so the tracking panel shows "no data" instead of surfacing a
+    // 502 in the browser console and triggering client retry storms.
+    if (error instanceof UpstreamError && error.status === 429) {
+      const payload: TrackResponse & { note: string } = {
+        sourceName: "Movebank",
+        totalTracks: 0,
+        tracks: [],
+        note: "Movebank rate limit reached; tracking data is temporarily unavailable.",
+      };
+      return json(payload, 200, { "cache-control": "no-store" });
+    }
+
     return json({ error: `Movebank upstream request failed: ${message}` }, 502);
   }
 }
@@ -378,7 +425,10 @@ async function fetchTracks({
 
     if (!response.ok) {
       const body = await response.text();
-      throw new Error(`Upstream status ${response.status}: ${body.slice(0, 200)}`);
+      throw new UpstreamError(
+        response.status,
+        `Upstream status ${response.status}: ${body.slice(0, 200)}`,
+      );
     }
 
     const csv = await response.text();

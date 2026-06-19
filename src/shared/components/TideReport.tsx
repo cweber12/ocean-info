@@ -1,18 +1,20 @@
 import { useId } from "react";
-import { CircleDashed, LoaderCircle, TriangleAlert, Waves } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ArrowUpDown,
+  ArrowUpToLine,
+  CircleDashed,
+  LoaderCircle,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react";
 import type { ActivityId } from "../../activities";
 import type {
   TideChartPoint,
   TidePrediction,
   TideReport as TideReportData,
 } from "../../domain/tide/types";
-import {
-  emptyValue,
-  filledValue,
-  ReportState,
-  ReportValueText,
-  type ReportValue,
-} from "./ReportState";
+import { ReportState } from "./ReportState";
 
 export interface TideReportProps {
   activityId: ActivityId;
@@ -26,6 +28,12 @@ type TideReportVariant = "compact" | "feature";
 const miniChartDimensions = {
   height: 236,
   padding: { bottom: 38, left: 56, right: 18, top: 18 },
+  width: 720,
+} as const;
+
+const tideChartDimensions = {
+  height: 252,
+  padding: { bottom: 56, left: 58, right: 22, top: 30 },
   width: 720,
 } as const;
 
@@ -73,7 +81,6 @@ export function TideReport({
 
   const highs = report.highLow.filter((prediction) => prediction.type === "high");
   const lows = report.highLow.filter((prediction) => prediction.type === "low");
-  const nextTides = report.highLow.slice(0, variant === "compact" ? 2 : 4);
   const lowestLow = getLowestTide(lows);
   const highestHigh = getHighestTide(highs);
   const chartSummary = getChartSummary(report.chart);
@@ -108,49 +115,27 @@ export function TideReport({
             <div className="tide-stat-grid">
               <TideStat
                 detail={lowestLow ? formatTime(lowestLow.at) : "Prediction unavailable"}
+                emptyText="No low"
+                icon={ArrowDownToLine}
                 label={variant === "feature" ? "Lowest tide" : "Next low"}
-                value={
-                  lowestLow
-                    ? filledValue(formatHeight(lowestLow.heightFeet))
-                    : emptyValue(Waves, "No low")
-                }
+                value={lowestLow ? formatHeight(lowestLow.heightFeet) : undefined}
               />
               <TideStat
                 detail={highestHigh ? formatTime(highestHigh.at) : "Prediction unavailable"}
+                emptyText="No high"
+                icon={ArrowUpToLine}
                 label={variant === "feature" ? "Highest tide" : "Next high"}
-                value={
-                  highestHigh
-                    ? filledValue(formatHeight(highestHigh.heightFeet))
-                    : emptyValue(Waves, "No high")
-                }
+                value={highestHigh ? formatHeight(highestHigh.heightFeet) : undefined}
               />
               {variant !== "compact" ? (
                 <TideStat
                   detail="Predicted spread"
+                  emptyText="No range"
+                  icon={ArrowUpDown}
                   label="Daily range"
-                  value={
-                    chartSummary
-                      ? filledValue(formatHeight(chartSummary.rangeFeet))
-                      : emptyValue(Waves, "No range")
-                  }
+                  value={chartSummary ? formatHeight(chartSummary.rangeFeet) : undefined}
                 />
               ) : null}
-            </div>
-
-            <div className="tide-events">
-              <div className="tide-events-heading">
-                <span>Upcoming</span>
-                <small>{report.station.name}</small>
-              </div>
-              <ol>
-                {nextTides.map((prediction) => (
-                  <li key={`${prediction.at}-${prediction.type}`}>
-                    <span>{formatTime(prediction.at)}</span>
-                    <strong>{prediction.type === "high" ? "High" : "Low"}</strong>
-                    <span>{formatHeight(prediction.heightFeet)}</span>
-                  </li>
-                ))}
-              </ol>
             </div>
 
             <p className="tide-source-note">
@@ -177,7 +162,7 @@ function TideChart({
   yAxisLabel: string;
 }) {
   const gradientId = `tide-chart-gradient-${useId().replace(/:/g, "")}`;
-  const { height, padding, width } = miniChartDimensions;
+  const { height, padding, width } = tideChartDimensions;
 
   if (points.length === 0) {
     return (
@@ -227,7 +212,7 @@ function TideChart({
       role="img"
       aria-label={buildTideChartLabel(events, maxHeight, minHeight)}
       viewBox={`0 0 ${width} ${height}`}
-      preserveAspectRatio="none"
+      preserveAspectRatio="xMidYMid meet"
     >
       <defs>
         <linearGradient
@@ -278,19 +263,19 @@ function TideChart({
             y1={plotBottom}
             y2={plotBottom + 5}
           />
-          <text x={tick.x} y={height - 8} textAnchor="middle">
+          <text x={tick.x} y={plotBottom + 22} textAnchor="middle">
             {tick.label}
           </text>
         </g>
       ))}
 
-      <text className="mini-chart-axis-label" x={padding.left} y={14} textAnchor="start">
+      <text className="mini-chart-axis-label" x={padding.left} y={16} textAnchor="start">
         {yAxisLabel}
       </text>
       <text
         className="mini-chart-axis-label"
         x={padding.left + plotWidth / 2}
-        y={height - 2}
+        y={height - 8}
         textAnchor="middle"
       >
         {xAxisLabel}
@@ -312,17 +297,28 @@ function TideChart({
 
 function TideStat({
   detail,
+  emptyText,
+  icon: Icon,
   label,
   value,
 }: {
   detail: string;
+  emptyText: string;
+  icon: LucideIcon;
   label: string;
-  value: ReportValue;
+  value?: string;
 }) {
   return (
     <div className="tide-stat">
-      <span>{label}</span>
-      <ReportValueText value={value} />
+      <span>
+        <Icon aria-hidden="true" size={16} strokeWidth={2.2} />
+        {label}
+      </span>
+      {value ? (
+        <strong>{value}</strong>
+      ) : (
+        <span className="tide-stat-empty">{emptyText}</span>
+      )}
       <small>{detail}</small>
     </div>
   );

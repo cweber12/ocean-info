@@ -249,8 +249,9 @@ h3 {
 }
 
 .control-bar {
-  position: relative;
-  z-index: 2;
+  position: sticky;
+  top: 0;
+  z-index: 20;
   background: color-mix(in srgb, var(--color-bg-secondary) 92%, var(--color-accent-activity-soft));
   border-bottom: 1px solid var(--color-border-secondary);
   box-shadow: var(--shadow-sm);
